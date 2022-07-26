@@ -12,7 +12,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 our @EXPORT = qw(encode_purl decode_purl);
 
@@ -317,7 +317,7 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   # Encode components in PackageURL string
   $purl = URI::PackageURL->new(type => cpan, namespace => 'URI', name => 'PackageURL', version => 1.00');
   
-  say $purl // pkg:cpan/URI/PackageURL@0.0.1
+  say $purl; # pkg:cpan/URI/PackageURL@0.0.1
 
   # Parse PackageURL string
   $purl = URI::PackageURL->from_string('pkg:cpan/URI/PackageURL@0.0.1');
@@ -325,7 +325,7 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   # exported funtions
 
   $purl = decode_purl('pkg:cpan/URI/PackageURL@0.0.1');
-  say $purl->type; // cpan
+  say $purl->type;  # cpan
 
   $purl_string = encode_purl(type => cpan, namespace => 'URI', name => 'PackageURL', version => 1.00');
 
@@ -439,7 +439,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>
 
     use Mojo::JSON qw(encode_json);
 
-    say encode_json($purl); // {"name":"PackageURL","namespace":"URI","qualifiers":null,"subpath":null,"type":"cpan","version":"0.0.1"}
+    say encode_json($purl);  # {"name":"PackageURL","namespace":"URI","qualifiers":null,"subpath":null,"type":"cpan","version":"0.0.1"}
 
 =back
 
