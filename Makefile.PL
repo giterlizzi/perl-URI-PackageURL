@@ -18,7 +18,7 @@ WriteMakefile(
     },
     TEST_REQUIRES => {
         'Test::More' => '0',
-        'JSON:PP'    => '0',
+        'JSON::PP'   => '0',
     },
     PREREQ_PM => {
     },
