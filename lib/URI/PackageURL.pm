@@ -12,7 +12,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 our @EXPORT = qw(encode_purl decode_purl);
 
@@ -193,7 +193,6 @@ sub from_string {
 
     $s3[1] =~ s{(^\/|\/$)}{};
     my @s4 = split('/', $s3[1], 2);
-
     $components{type} = lc $s4[0];
 
 
@@ -204,7 +203,6 @@ sub from_string {
     #     This is the version
 
     my @s5 = split('@', $s4[1]);
-
     $components{version} = url_decode($s5[1]);
 
 
@@ -216,8 +214,7 @@ sub from_string {
     #     This is the name
 
     my @s6 = split('/', $s5[0], 2);
-
-    $components{name} = url_decode($s6[1]);
+    $components{name} = (scalar @s6 > 1) ? url_decode($s6[1]) : url_decode($s6[0]);    
 
 
     # Split the remainder on '/'
@@ -228,9 +225,10 @@ sub from_string {
     #     Join segments back with a '/'
     #     This is the namespace
 
-    my @s7 = split('/', $s6[0]);
-
-    $components{namespace} = join '/', map { url_decode($_) } @s7;
+    if (scalar @s6 > 1) {
+        my @s7 = split('/', $s6[0]);
+        $components{namespace} = join '/', map { url_decode($_) } @s7;
+    }
 
 
     return $class->new(%components);
