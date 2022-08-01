@@ -7,7 +7,7 @@ use Test::More;
 
 use URI::PackageURL;
 
-my $t1 = 'pkg:cpan/URI/PackageURL@1.00';
+my $t1 = 'pkg:cpan/URI::PackageURL@1.10';
 my $t2 = 'pkg:deb/debian/curl@7.50.3-1?arch=i386&distro=jessie';
 my $t3 = 'pkg:golang/google.golang.org/genproto@abcdedf#googleapis/api/annotations';
 my $t4 = 'pkg:docker/customer/dockerimage@sha256:244fd47e07d1004f0aed9c?repository_url=gcr.io';
@@ -16,10 +16,9 @@ subtest "Decode '$t1'" => sub {
 
     my $purl = decode_purl($t1);
 
-    is($purl->type,      'cpan',       'Type');
-    is($purl->namespace, 'URI',        'Namespace');
-    is($purl->name,      'PackageURL', 'Name');
-    is($purl->version,   '1.00',       'Version');
+    is($purl->type,    'cpan',            'Type');
+    is($purl->name,    'URI::PackageURL', 'Name');
+    is($purl->version, '1.10',            'Version');
 
     is($purl->to_string, $t1, 'PackageURL');
 

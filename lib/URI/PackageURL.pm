@@ -12,7 +12,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 
 our @EXPORT = qw(encode_purl decode_purl);
 
@@ -56,19 +56,12 @@ sub normalize_components {
 
     $components{type} = lc $components{type};
 
-    if ($components{type} eq 'pypi') {
-        $components{name} =~ s/_/-/g;
+    if ($components{type} eq 'cpan') {
+        $components{name} =~ s/-/::/g;
     }
 
-    # CPAN: Split Perl "Namespace::Package" naming into "namespace" and "name" components
-    if ($components{type} eq 'cpan' && $components{name} =~ /::/) {
-
-        my @ns   = split /::/, $components{name};
-        my $name = pop @ns;
-
-        $components{name}      = $name;
-        $components{namespace} = join '::', @ns;
-
+    if ($components{type} eq 'pypi') {
+        $components{name} =~ s/_/-/g;
     }
 
     if (grep { $_ eq $components{type} } qw(bitbucket deb github golang hex npm pypi)) {
@@ -203,7 +196,7 @@ sub from_string {
     #     This is the version
 
     my @s5 = split('@', $s4[1]);
-    $components{version} = url_decode($s5[1]);
+    $components{version} = url_decode($s5[1]) if ($s5[1]);
 
 
     # Split the remainder once from right on '/'
@@ -214,7 +207,7 @@ sub from_string {
     #     This is the name
 
     my @s6 = split('/', $s5[0], 2);
-    $components{name} = (scalar @s6 > 1) ? url_decode($s6[1]) : url_decode($s6[0]);    
+    $components{name} = (scalar @s6 > 1) ? url_decode($s6[1]) : url_decode($s6[0]);
 
 
     # Split the remainder on '/'
@@ -229,7 +222,6 @@ sub from_string {
         my @s7 = split('/', $s6[0]);
         $components{namespace} = join '/', map { url_decode($_) } @s7;
     }
-
 
     return $class->new(%components);
 
@@ -313,19 +305,19 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   # OO-interface
   
   # Encode components in PackageURL string
-  $purl = URI::PackageURL->new(type => cpan, namespace => 'URI', name => 'PackageURL', version => 1.00');
+  $purl = URI::PackageURL->new(type => cpan, name => 'URI::PackageURL', version => '1.10');
   
-  say $purl; # pkg:cpan/URI/PackageURL@0.0.1
+  say $purl; # pkg:cpan/URI::PackageURL@1.10
 
   # Parse PackageURL string
-  $purl = URI::PackageURL->from_string('pkg:cpan/URI/PackageURL@0.0.1');
+  $purl = URI::PackageURL->from_string('pkg:cpan/URI::PackageURL@1.10');
 
   # exported funtions
 
-  $purl = decode_purl('pkg:cpan/URI/PackageURL@0.0.1');
+  $purl = decode_purl('pkg:cpan/URI::PackageURL@1.10');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, namespace => 'URI', name => 'PackageURL', version => 1.00');
+  $purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '1.10');
 
 =head1 DESCRIPTION
 
@@ -437,7 +429,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>
 
     use Mojo::JSON qw(encode_json);
 
-    say encode_json($purl);  # {"name":"PackageURL","namespace":"URI","qualifiers":null,"subpath":null,"type":"cpan","version":"0.0.1"}
+    say encode_json($purl);  # {"name":"URI::PackageURL","namespace":null,"qualifiers":null,"subpath":null,"type":"cpan","version":"1.10"}
 
 =back
 
