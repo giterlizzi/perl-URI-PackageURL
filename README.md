@@ -1,4 +1,4 @@
-[![Release](https://img.shields.io/github/release/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/releases) [![Actions Status](https://github.com/giterlizzi/perl-URI-PackageURL/workflows/linux/badge.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/actions) [![Actions Status](https://github.com/giterlizzi/perl-URI-PackageURL/workflows/macos/badge.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/actions) [![License](https://img.shields.io/github/license/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL) [![Starts](https://img.shields.io/github/stars/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL) [![Forks](https://img.shields.io/github/forks/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL) [![Issues](https://img.shields.io/github/issues/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/issues) [![Coverage Status](https://coveralls.io/repos/github/giterlizzi/perl-URI-PackageURL/badge.svg)](https://coveralls.io/github/giterlizzi/perl-URI-PackageURL)
+[![Release](https://img.shields.io/github/release/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/releases) [![Actions Status](https://github.com/giterlizzi/perl-URI-PackageURL/workflows/linux/badge.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/actions) [![License](https://img.shields.io/github/license/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL) [![Starts](https://img.shields.io/github/stars/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL) [![Forks](https://img.shields.io/github/forks/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL) [![Issues](https://img.shields.io/github/issues/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/issues) [![Coverage Status](https://coveralls.io/repos/github/giterlizzi/perl-URI-PackageURL/badge.svg)](https://coveralls.io/github/giterlizzi/perl-URI-PackageURL)
 
 # URI::PackageURL - Perl extension for Package URL (aka "purl")
 
@@ -10,19 +10,19 @@ use URI::PackageURL;
 # OO-interface
 
 # Encode components in PackageURL string
-$purl = URI::PackageURL->new(type => cpan, namespace => 'URI', name => 'PackageURL', version => 1.00');
+$purl = URI::PackageURL->new(type => cpan, name => 'URI::PackageURL', version => '1.10');
 
-say $purl;  # pkg:cpan/URI/PackageURL@0.0.1
+say $purl; # pkg:cpan/URI::PackageURL@1.10
 
 # Parse PackageURL string
-$purl = URI::PackageURL->from_string('pkg:cpan/URI/PackageURL@0.0.1');
+$purl = URI::PackageURL->from_string('pkg:cpan/URI::PackageURL@1.10');
 
 # exported funtions
 
-$purl = decode_purl('pkg:cpan/URI/PackageURL@0.0.1');
+$purl = decode_purl('pkg:cpan/URI::PackageURL@1.10');
 say $purl->type;  # cpan
 
-$purl_string = encode_purl(type => cpan, namespace => 'URI', name => 'PackageURL', version => 1.00');
+$purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '1.10');
 ```
 
 ## Install
