@@ -25,6 +25,9 @@ WriteMakefile(
     META_MERGE => {
         'meta-spec' => { version => 2 },
         'resources' => {
+            bugtracker => {
+                web => 'https://github.com/giterlizzi/perl-URI-PackageURL/issues',
+            },
             repository => {
                 type => 'git',
                 url  => 'git://github.com/giterlizzi/perl-URI-PackageURL',
