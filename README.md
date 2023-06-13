@@ -10,19 +10,19 @@ use URI::PackageURL;
 # OO-interface
 
 # Encode components in PackageURL string
-$purl = URI::PackageURL->new(type => cpan, name => 'URI::PackageURL', version => '1.10');
+$purl = URI::PackageURL->new(type => cpan, namespace => 'GDT', name => 'URI-PackageURL', version => '2.00');
 
-say $purl; # pkg:cpan/URI::PackageURL@1.10
+say $purl; # pkg:cpan/GDT/URI-PackageURL@2.00
 
 # Parse PackageURL string
-$purl = URI::PackageURL->from_string('pkg:cpan/URI::PackageURL@1.10');
+$purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.00');
 
 # exported funtions
 
-$purl = decode_purl('pkg:cpan/URI::PackageURL@1.10');
+$purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.00');
 say $purl->type;  # cpan
 
-$purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '1.10');
+$purl_string = encode_purl(type => cpan, namespace => 'GDT', name => 'URI::PackageURL', version => '2.00');
 ```
 
 ## Install
@@ -49,4 +49,4 @@ Using App::cpanminus:
 
 ## Copyright
 
- - Copyright 2022 © Giuseppe Di Terlizzi
+ - Copyright 2022-2023 © Giuseppe Di Terlizzi
