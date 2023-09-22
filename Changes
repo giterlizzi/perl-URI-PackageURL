@@ -1,5 +1,8 @@
 Revision history for Perl extension URI::PackageURL.
 
+2.02 2023-09-22
+    - Added core "JSON" module prerequisite in Makefile.PL (#4)
+
 2.01 2023-09-17
     - Added "repository_url" qualifier support for "cpan" PURL type
 

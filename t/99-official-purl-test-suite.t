@@ -1,6 +1,6 @@
 #!perl -T
 
-use JSON::PP;
+use JSON;
 use Test::More;
 
 require_ok('URI::PackageURL');
