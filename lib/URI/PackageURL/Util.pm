@@ -8,7 +8,7 @@ use warnings;
 use Carp;
 use Exporter qw(import);
 
-our $VERSION = '2.02';
+our $VERSION = '2.03';
 our @EXPORT  = qw(purl_to_urls);
 
 sub purl_to_urls {
@@ -206,7 +206,7 @@ sub _cpan_urls {
 
     $name =~ s/\:\:/-/g;    # TODO
 
-    my $urls = {repository => "https://metacpan.org/pod/$name"};
+    my $urls = {repository => "https://metacpan.org/dist/$name"};
 
     if ($name && $version && $author) {
 
