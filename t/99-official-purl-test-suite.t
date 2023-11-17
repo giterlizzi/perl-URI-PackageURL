@@ -23,7 +23,7 @@ sub test_purl_encode {
     };
 
     if ($test->{is_invalid}) {
-        like($@, qr/Invalid PackageURL/i, "ENCODE: $test_name");
+        like($@, qr/Invalid Package URL/i, "ENCODE: $test_name");
         return;
     }
 
@@ -48,7 +48,7 @@ sub test_purl_decode {
     my $purl = eval { URI::PackageURL->from_string($test->{purl}) };
 
     if ($test->{is_invalid}) {
-        like($@, qr/(Invalid|Malformed) PackageURL/i, "DECODE: $test_name");
+        like($@, qr/(Invalid|Malformed) Package URL/i, "DECODE: $test_name");
         return;
     }
 
