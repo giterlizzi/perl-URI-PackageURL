@@ -13,7 +13,7 @@ use constant PURL_DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.04';
+our $VERSION = '2.04_01';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -50,7 +50,26 @@ sub new {
     }
 
     $name =~ s/_/-/g  if $type eq 'pypi';
-    $name =~ s/::/-/g if $type eq 'cpan';
+
+    if ($type eq 'cpan') {
+
+        # CPAN Author name is MUST be uppercased
+        $namespace = uc $namespace if ($namespace);
+
+        if (($namespace && $name) && $namespace =~ /\:/) {
+            Carp::croak "Invalid Package URL: CPAN 'namespace' must have the distribution author";
+        }
+
+        if (($namespace && $name) && $name =~ /\:/) {
+            Carp::croak "Invalid Package URL: CPAN 'name' must have the distribution name";
+        }
+
+        if (! $namespace && $name =~ /\-/) {
+            Carp::croak "Invalid Package URL: CPAN 'name' must have the module name";
+        }
+
+    }
+
 
     if ($type eq 'swift') {
         Carp::croak "Invalid Package URL: Swift 'version' is required"   unless defined $version;
@@ -70,7 +89,8 @@ sub new {
         }
         else {
             if (defined $qualifiers->{channel}) {
-                Carp::croak "Invalid Package URL: Conan 'namespace' does not exist for channel '$qualifiers->{channel}'";
+                Carp::croak
+                    "Invalid Package URL: Conan 'namespace' does not exist for channel '$qualifiers->{channel}'";
             }
         }
 
