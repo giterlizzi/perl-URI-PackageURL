@@ -375,7 +375,7 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   # Parse Package URL string
   $purl = URI::PackageURL->from_string('pkg:cpan/URI-PackageURL@2.04');
 
-  # exported funtions
+  # exported functions
 
   $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.04');
   say $purl->type;  # cpan
@@ -399,7 +399,7 @@ A purl is a URL composed of seven components:
 
 Components are separated by a specific character for unambiguous parsing.
 
-The defintion for each components is:
+The definition for each components is:
 
 =over
 
