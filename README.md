@@ -17,7 +17,7 @@ say $purl; # pkg:cpan/GDT/URI-PackageURL@2.04
 # Parse PackageURL string
 $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.04');
 
-# exported funtions
+# exported functions
 
 $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.04');
 say $purl->type;  # cpan
