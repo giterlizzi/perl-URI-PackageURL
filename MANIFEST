@@ -19,3 +19,5 @@ t/99-official-purl-test-suite.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
+t/sync-purl-test-suite-data.sh
+t/test-suite-data.json
