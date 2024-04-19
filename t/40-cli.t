@@ -6,7 +6,7 @@ use warnings;
 use Test::More;
 use JSON;
 
-use URI::PackageURL::CLI;
+use URI::PackageURL::App;
 
 sub cmd {
 
@@ -17,7 +17,7 @@ sub cmd {
     open(my $output_handle, '>', \$output) or die "Can't open handle file: $!";
     my $original_handle = select $output_handle;
 
-    URI::PackageURL::CLI->run(@arguments);
+    URI::PackageURL::App->run(@arguments);
     chomp $output;
 
     select $original_handle;
@@ -28,7 +28,7 @@ sub cmd {
 
 my $t1 = 'pkg:cpan/GDT/URI-PackageURL@2.00';
 
-subtest "CLI '$t1' (JSON output)" => sub {
+subtest "App '$t1' (JSON output)" => sub {
 
     my $test_1 = cmd($t1, '--json');
 
