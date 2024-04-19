@@ -69,7 +69,7 @@ sub test_purl_decode {
 
 my $test_suite_file = File::Spec->catfile('t', 'test-suite-data.json');
 
-BAIL_OUT('"test-suite-data.json" file not found') if (! -e $test_suite_file);
+BAIL_OUT('"test-suite-data.json" file not found') if (!-e $test_suite_file);
 
 open my $fh, '<', $test_suite_file or Carp::croak "Can't open file: $!";
 

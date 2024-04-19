@@ -8,7 +8,7 @@ use warnings;
 use Carp;
 use Exporter qw(import);
 
-our $VERSION = '2.04_01';
+our $VERSION = '2.04_02';
 our @EXPORT  = qw(purl_to_urls);
 
 sub purl_to_urls {

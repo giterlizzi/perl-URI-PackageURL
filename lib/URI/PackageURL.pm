@@ -13,7 +13,7 @@ use constant PURL_DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.04_01';
+our $VERSION = '2.04_02';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -49,7 +49,7 @@ sub new {
         Carp::croak "Invalid Package URL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /\%/);
     }
 
-    $name =~ s/_/-/g  if $type eq 'pypi';
+    $name =~ s/_/-/g if $type eq 'pypi';
 
     if ($type eq 'cpan') {
 
@@ -57,15 +57,15 @@ sub new {
         $namespace = uc $namespace if ($namespace);
 
         if (($namespace && $name) && $namespace =~ /\:/) {
-            Carp::croak "Invalid Package URL: CPAN 'namespace' must have the distribution author";
+            Carp::carp "Invalid Package URL: CPAN 'namespace' must have the distribution author";
         }
 
         if (($namespace && $name) && $name =~ /\:/) {
-            Carp::croak "Invalid Package URL: CPAN 'name' must have the distribution name";
+            Carp::carp "Invalid Package URL: CPAN 'name' must have the distribution name";
         }
 
-        if (! $namespace && $name =~ /\-/) {
-            Carp::croak "Invalid Package URL: CPAN 'name' must have the module name";
+        if (!$namespace && $name =~ /\-/) {
+            Carp::carp "Invalid Package URL: CPAN 'name' must have the module name";
         }
 
     }
@@ -373,15 +373,15 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   say $purl; # pkg:cpan/GDT/URI-PackageURL@2.04
 
   # Parse Package URL string
-  $purl = URI::PackageURL->from_string('pkg:cpan/URI-PackageURL@2.04');
+  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.04');
 
   # exported functions
 
   $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.04');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, name => 'URI-PackageURL', version => '2.04');
-  say $purl_string; # pkg:cpan/URI-PackageURL@2.04
+  $purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '2.04');
+  say $purl_string; # pkg:cpan/URI::PackageURL@2.04
 
 =head1 DESCRIPTION
 
@@ -407,7 +407,7 @@ The definition for each components is:
 One of the primary reason for this single scheme is to facilitate the future
 official registration of the "pkg" scheme for package URLs. Required.
 
-=item * "type": the package "type" or package "protocol" such as maven, npm,
+=item * "type": the package "type" or package "protocol" such as cpan, maven, npm,
 nuget, gem, pypi, etc. Required.
 
 =item * "namespace": some name prefix such as a Maven groupid, a Docker image
@@ -460,7 +460,7 @@ Create new B<URI::PackageURL> instance using provided Package URL components
 
 =item $purl->type
 
-The package "type" or package "protocol" such as maven, npm, nuget, gem, pypi, etc.
+The package "type" or package "protocol" such as cpan, maven, npm, nuget, gem, pypi, etc.
 
 =item $purl->namespace
 

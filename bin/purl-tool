@@ -4,9 +4,9 @@ use strict;
 use warnings;
 use utf8;
 
-use URI::PackageURL::CLI;
+use URI::PackageURL::App;
 
-exit URI::PackageURL::CLI->run(@ARGV) unless caller();
+exit URI::PackageURL::App->run(@ARGV) unless caller();
 
 1;
 

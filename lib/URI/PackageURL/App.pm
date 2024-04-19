@@ -1,17 +1,17 @@
-package URI::PackageURL::CLI;
+package URI::PackageURL::App;
 
 use feature ':5.10';
 use strict;
 use warnings;
 use utf8;
 
-use Getopt::Long qw( GetOptionsFromArray :config gnu_compat pass_through );
+use Getopt::Long qw( GetOptionsFromArray :config gnu_compat );
 use Pod::Usage;
 use Carp;
 
 use URI::PackageURL;
 
-our $VERSION = '2.04_01';
+our $VERSION = '2.04_02';
 
 sub cli_error {
     my ($error) = @_;
