@@ -11,7 +11,7 @@ use Carp;
 
 use URI::PackageURL;
 
-our $VERSION = '2.04_02';
+our $VERSION = '2.04_03';
 
 sub cli_error {
     my ($error) = @_;
