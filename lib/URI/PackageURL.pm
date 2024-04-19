@@ -13,7 +13,7 @@ use constant PURL_DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.04_03';
+our $VERSION = '2.04_04';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -367,21 +367,21 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
     type      => cpan,
     namespace => 'GDT',
     name      => 'URI-PackageURL',
-    version   => '2.04'
+    version   => '2.10'
   );
   
-  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.04
+  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.10
 
   # Parse Package URL string
-  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.04');
+  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.10');
 
   # exported functions
 
-  $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.04');
+  $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.10');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '2.04');
-  say $purl_string; # pkg:cpan/URI::PackageURL@2.04
+  $purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '2.10');
+  say $purl_string; # pkg:cpan/URI::PackageURL@2.10
 
 =head1 DESCRIPTION
 
@@ -497,7 +497,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>
 
     use Mojo::JSON qw(encode_json);
 
-    say encode_json($purl);  # {"name":"URI-PackageURL","namespace":"GDT","qualifiers":null,"subpath":null,"type":"cpan","version":"2.04"}
+    say encode_json($purl);  # {"name":"URI-PackageURL","namespace":"GDT","qualifiers":null,"subpath":null,"type":"cpan","version":"2.10"}
 
 =item $purl = URI::PackageURL->from_string($purl_string);
 
@@ -535,7 +535,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 LICENSE AND COPYRIGHT
 
-This software is copyright (c) 2022-2023 by Giuseppe Di Terlizzi.
+This software is copyright (c) 2022-2024 by Giuseppe Di Terlizzi.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

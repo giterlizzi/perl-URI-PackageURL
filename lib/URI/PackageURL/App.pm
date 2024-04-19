@@ -11,7 +11,7 @@ use Carp;
 
 use URI::PackageURL;
 
-our $VERSION = '2.04_03';
+our $VERSION = '2.04_04';
 
 sub cli_error {
     my ($error) = @_;
@@ -134,8 +134,8 @@ VERSION
 
     if ($options{format} eq 'json') {
 
-        if (eval { require JSON }) {
-            print JSON->new->canonical->pretty(1)->convert_blessed(1)->encode($purl);
+        if (eval { require JSON::PP }) {
+            print JSON::PP->new->canonical->pretty(1)->convert_blessed(1)->encode($purl);
             return 0;
         }
 
@@ -254,7 +254,7 @@ L<Giuseppe Di Terlizzi|https://metacpan.org/author/gdt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright © 2022-2023 L<Giuseppe Di Terlizzi|https://metacpan.org/author/gdt>
+Copyright © 2022-2024 L<Giuseppe Di Terlizzi|https://metacpan.org/author/gdt>
 
 You may use and distribute this module according to the same terms
 that Perl is distributed under.
