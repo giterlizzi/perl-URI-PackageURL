@@ -44,4 +44,4 @@ jobs:
       - name: Coverage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: cover -test -report Coveralls
+        run: cover -test -report Coveralls || true

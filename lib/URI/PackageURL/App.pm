@@ -8,10 +8,12 @@ use utf8;
 use Getopt::Long qw( GetOptionsFromArray :config gnu_compat );
 use Pod::Usage;
 use Carp;
+use JSON::PP;
+use Data::Dumper;
 
 use URI::PackageURL;
 
-our $VERSION = '2.04_04';
+our $VERSION = '2.11';
 
 sub cli_error {
     my ($error) = @_;
@@ -61,7 +63,7 @@ sub run {
         say <<"VERSION";
 $progname version $URI::PackageURL::VERSION
 
-Copyright 2022-2023, Giuseppe Di Terlizzi <gdt\@cpan.org>
+Copyright 2022-2024, Giuseppe Di Terlizzi <gdt\@cpan.org>
 
 This program is part of the URI::PackageURL distribution and is free software;
 you can redistribute it and/or modify it under the same terms as Perl itself.
@@ -133,27 +135,13 @@ VERSION
     }
 
     if ($options{format} eq 'json') {
-
-        if (eval { require JSON::PP }) {
-            print JSON::PP->new->canonical->pretty(1)->convert_blessed(1)->encode($purl);
-            return 0;
-        }
-
-        cli_error 'JSON module missing';
-        return 255;
-
+        print JSON::PP->new->canonical->pretty(1)->convert_blessed(1)->encode($purl);
+        return 0;
     }
 
     if ($options{format} eq 'dumper') {
-
-        if (eval { require Data::Dumper }) {
-            print Data::Dumper->new([$purl])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump;
-            return 0;
-        }
-
-        cli_error 'Data::Dumper module missing';
-        return 255;
-
+        print Data::Dumper->new([$purl])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump;
+        return 0;
     }
 
     if ($options{format} eq 'yaml') {
@@ -224,17 +212,17 @@ __END__
 
 =head1 NAME
 
-URI::PackageURL::CLI - URL::PackageURL (purl) Command Line Interface
+URI::PackageURL::App - URL::PackageURL (purl) Command Line Interface
 
 =head1 SYNOPSIS
 
-    use URI::PackageURL::CLI qw(run);
+    use URI::PackageURL::App qw(run);
 
     run(\@ARGV);
 
 =head1 DESCRIPTION
 
-URI::PackageURL::CLI "Command Line Interface" helper module for C<purl-tool(1)>.
+URI::PackageURL::App "Command Line Interface" helper module for C<purl-tool(1)>.
 
 =over
 
