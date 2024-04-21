@@ -7,7 +7,7 @@ use warnings;
 use version ();
 
 use Carp;
-use List::Util qw(pairs first);
+use List::Util qw(first);
 use Exporter   qw(import);
 
 use URI::VersionRange::VersionConstraint;
@@ -18,7 +18,7 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.11_01';
+our $VERSION = '2.11_02';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -195,10 +195,13 @@ sub contains {
     my $current_constraint = undef;
     my $next_constraint    = undef;
 
-    foreach (pairs @second) {
+    foreach (_pairwise(@second)) {
 
         $current_constraint = $_->[0];
-        $next_constraint    = $_->[1] || URI::VersionRange::VersionConstraint->new;
+        $next_constraint    = $_->[1];
+
+        DEBUG and say STDERR sprintf '-- Current constraint -->  %s', $current_constraint;
+        DEBUG and say STDERR sprintf '-- Next constraint    -->  %s', $next_constraint;
 
         # If this is the first iteration and current comparator is "<" or <=" and
         # the "tested version" is less than the current version then the "tested
@@ -221,8 +224,8 @@ sub contains {
 
         if (   (first { $current_constraint->comparator eq $_ } ('>', '>='))
             && (first { $next_constraint->comparator eq $_ } ('<', '<='))
-            && (version->parse($version) > version->parse($next_constraint->vers))
-            && (version->parse($version) < version->parse($current_constraint->vers)))
+            && (version->parse($version) > version->parse($current_constraint->vers))
+            && (version->parse($version) < version->parse($next_constraint->vers)))
         {
             return TRUE;
         }
@@ -236,9 +239,9 @@ sub contains {
             next;
         }
 
-        else {
-            Carp::croak 'Constraints are in an invalid order';
-        }
+        # else {
+        #     Carp::carp 'Constraints are in an invalid order';
+        # }
 
     }
 
@@ -259,6 +262,19 @@ sub TO_JSON {
     my $self = shift;
 
     return {versioning_scheme => $self->versioning_scheme, version_constraints => $self->version_constraints,};
+
+}
+
+sub _pairwise {
+
+    my @in  = @_;
+    my @out = ();
+
+    for (my $i = 0; $i < scalar @in; $i++) {
+        push @out, [$in[$i], $in[$i + 1]] if $in[$i + 1];
+    }
+
+    return @out;
 
 }
 

@@ -14,7 +14,7 @@ use overload '""' => 'to_string', fallback => 1;
 use constant TRUE  => !!1;
 use constant FALSE => !!0;
 
-our $VERSION = '2.11_01';
+our $VERSION = '2.11_02';
 
 sub new {
 
