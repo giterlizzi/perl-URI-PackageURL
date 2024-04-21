@@ -1,4 +1,4 @@
-package URI::VersionRange::VersionConstraint;
+package URI::VersionRange::Constraint;
 
 use feature ':5.10';
 use strict;
@@ -14,7 +14,7 @@ use overload '""' => 'to_string', fallback => 1;
 use constant TRUE  => !!1;
 use constant FALSE => !!0;
 
-our $VERSION = '2.11_02';
+our $VERSION = '2.11_03';
 
 sub new {
 
@@ -34,6 +34,8 @@ sub comparator { shift->{comparator} }
 sub from_string {
 
     my ($class, $string) = @_;
+
+    Carp::croak 'Empty version' unless $string;
 
     # - For each <version-constraint>:
     #   - Determine if the <version-constraint> starts with one of the two comparators:
@@ -55,17 +57,18 @@ sub from_string {
     return $class->new(comparator => '*') if ($string eq '*');
 
     return $class->new(comparator => '=', version => $string);
+
 }
 
 sub to_string {
 
     my $self = shift;
 
-    return '*'         if $self->comparator eq '*';
+    return '*' if $self->comparator eq '*';
+
     return $self->vers if $self->comparator eq '=';
 
-    return $self->comparator . $self->vers;
-
+    return join '', $self->comparator, $self->vers;
 
 }
 

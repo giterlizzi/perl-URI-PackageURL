@@ -13,7 +13,7 @@ use Data::Dumper;
 
 use URI::PackageURL;
 
-our $VERSION = '2.11_02';
+our $VERSION = '2.11_03';
 
 sub cli_error {
     my ($error) = @_;

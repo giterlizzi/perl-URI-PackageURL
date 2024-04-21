@@ -10,7 +10,7 @@ use Carp;
 use List::Util qw(first);
 use Exporter   qw(import);
 
-use URI::VersionRange::VersionConstraint;
+use URI::VersionRange::Constraint;
 
 use constant DEBUG => $ENV{VERS_DEBUG};
 use constant TRUE  => !!1;
@@ -18,7 +18,7 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.11_02';
+our $VERSION = '2.11_03';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -27,35 +27,29 @@ sub new {
 
     my ($class, %params) = @_;
 
-    my $scheme = delete $params{scheme} // 'vers';
+    my $scheme      = delete $params{scheme}      or Carp::croak "Invalid Version Range: 'scheme' is required";
+    my $constraints = delete $params{constraints} or Carp::croak "Invalid Version Range: 'constraints' is required";
 
-    my $versioning_scheme = delete $params{versioning_scheme}
-        or Carp::croak "Invalid Version Range: 'versioning_scheme' is required";
+    my @constraints = ();
 
-    my $version_constraints = delete $params{version_constraints}
-        or Carp::croak "Invalid Version Range: 'version_constraints' is required";
+    foreach my $constraint (@{$constraints}) {
 
-    my @version_constraints = ();
-
-    foreach (@{$version_constraints}) {
-        if (ref($_) ne 'URI::VersionRange::VersionConstraint') {
-            push @version_constraints, URI::VersionRange::VersionConstraint->from_string($_);
+        if (ref($constraint) ne 'URI::VersionRange::Constraint') {
+            $constraint = URI::VersionRange::Constraint->from_string($constraint);
         }
-        else {
-            push @version_constraints, $_;
-        }
+
+        push @constraints, $constraint;
+
     }
 
-    my $self
-        = {scheme => $scheme, versioning_scheme => $versioning_scheme, version_constraints => \@version_constraints};
+    my $self = {scheme => lc($scheme), constraints => \@constraints};
 
     return bless $self, $class;
 
 }
 
-sub scheme              { shift->{scheme} }
-sub versioning_scheme   { shift->{versioning_scheme} }
-sub version_constraints { shift->{version_constraints} }
+sub scheme      { shift->{scheme} }
+sub constraints { shift->{constraints} }
 
 sub encode_vers { __PACKAGE__->new(@_)->to_string }
 sub decode_vers { __PACKAGE__->from_string(shift) }
@@ -68,7 +62,7 @@ sub from_string {
         Carp::croak 'Malformed Version Range string';
     }
 
-    my %components = ();
+    my %params = ();
 
     # - Remove all spaces and tabs.
     # - Start from left, and split once on colon ":".
@@ -79,7 +73,8 @@ sub from_string {
     $string =~ s/(\s|\t)+//g;
 
     my @s1 = split(':', $string);
-    $components{scheme} = lc $s1[0];
+
+    # $params{uri_scheme} = lc $s1[0];
 
     # - Split the specifier from left once on a slash "/".
     # - The left hand side is the <versioning-scheme> that must be lowercase. Tools
@@ -88,7 +83,7 @@ sub from_string {
     #   that this constraints string is not empty ignoring spaces.
 
     my @s2 = split('/', $s1[1]);
-    $components{versioning_scheme} = lc $s2[0];
+    $params{scheme} = lc $s2[0];
 
     # - If the constraints string is equal to "", the ``<version-constraint>``
     #   is "". Parsing is done and no further processing is needed for this vers.
@@ -100,7 +95,7 @@ sub from_string {
     $s2[1] =~ s{(^\|)|(\|$)}{}g;
 
     my @s3 = split(/\|/, $s2[1]);
-    $components{version_constraint} = [];
+    $params{constraints} = [];
 
     # - For each <version-constraint>:
     #   - Determine if the <version-constraint> starts with one of the two comparators:
@@ -116,7 +111,7 @@ sub from_string {
     #   - Append the parsed (comparator, version) to the constraints list.
 
     foreach (@s3) {
-        push @{$components{version_constraints}}, URI::VersionRange::VersionConstraint->from_string($_);
+        push @{$params{constraints}}, URI::VersionRange::Constraint->from_string($_);
     }
 
     if (DEBUG) {
@@ -125,23 +120,12 @@ sub from_string {
         say STDERR "-- S3: @s3";
     }
 
-    return $class->new(%components);
+    return $class->new(%params);
 
 }
 
 sub to_string {
-
-    my $self = shift;
-
-    my @version_constraints = ();
-
-    foreach (@{$self->version_constraints}) {
-        push @version_constraints, $_;
-    }
-
-    return join '', 'vers:', $self->versioning_scheme, '/', join('|', @version_constraints);
-
-
+    return join '', 'vers:', $_[0]->scheme, '/', join('|', @{$_[0]->constraints});
 }
 
 sub contains {
@@ -151,11 +135,11 @@ sub contains {
     my @first  = ();
     my @second = ();
 
-    if (scalar @{$self->version_constraints} == 1) {
-        return $self->version_constraints->[0]->contains($version);
+    if (scalar @{$self->constraints} == 1) {
+        return $self->constraints->[0]->contains($version);
     }
 
-    foreach my $constraint (@{$self->version_constraints}) {
+    foreach my $constraint (@{$self->constraints}) {
 
         # If the "tested version" is equal to the any of the constraint version
         # where the constraint comparator is for equality (any of "=", "<=", or ">=")
@@ -174,15 +158,15 @@ sub contains {
         #    a first list where the comparator is "=" or "!="
         #    a second list where the comparator is neither "=" nor "!="
 
-        push @first, $constraint if ((first { $constraint->comparator eq $_ } ('=', '!=')));
-        push @second, $constraint if ((first { $constraint->comparator ne $_ } ('=', '!=')));
+        push @first,  $constraint if ((first { $constraint->comparator eq $_ } ('=',  '!=')));
+        push @second, $constraint if (!(first { $constraint->comparator eq $_ } ('=', '!=')));
 
         return FALSE unless @second;
 
     }
 
     if (scalar @second == 1) {
-        return $second[0]->contain_version($version);
+        return $second[0]->contains($version);
     }
 
     # Iterate over the current and next contiguous constraints pairs (aka. pairwise)
@@ -197,8 +181,7 @@ sub contains {
 
     foreach (_pairwise(@second)) {
 
-        $current_constraint = $_->[0];
-        $next_constraint    = $_->[1];
+        ($current_constraint, $next_constraint) = @{$_};
 
         DEBUG and say STDERR sprintf '-- Current constraint -->  %s', $current_constraint;
         DEBUG and say STDERR sprintf '-- Next constraint    -->  %s', $next_constraint;
@@ -239,10 +222,6 @@ sub contains {
             next;
         }
 
-        # else {
-        #     Carp::carp 'Constraints are in an invalid order';
-        # }
-
     }
 
     # If this is the last iteration and next comparator is ">" or >=" and the
@@ -258,20 +237,15 @@ sub contains {
 }
 
 sub TO_JSON {
-
-    my $self = shift;
-
-    return {versioning_scheme => $self->versioning_scheme, version_constraints => $self->version_constraints,};
-
+    return {scheme => $_[0]->scheme, constraints => $_[0]->constraints};
 }
 
 sub _pairwise {
 
-    my @in  = @_;
     my @out = ();
 
-    for (my $i = 0; $i < scalar @in; $i++) {
-        push @out, [$in[$i], $in[$i + 1]] if $in[$i + 1];
+    for (my $i = 0; $i < scalar @_; $i++) {
+        push @out, [$_[$i], $_[$i + 1]] if $_[$i + 1];
     }
 
     return @out;
@@ -292,8 +266,8 @@ URI::VersionRange - Perl extension for Version Range Specification
   # OO-interface
 
   $vers = URI::VersionRange->new(
-    versioning_scheme  => cpan,
-    version_constraint => ['>2.00']
+    scheme      => cpan,
+    constraints => ['>2.00']
   );
   
   say $vers; # vers:cpan/>2.00
@@ -304,15 +278,13 @@ URI::VersionRange - Perl extension for Version Range Specification
   # exported functions
 
   $vers = decode_vers('vers:cpan/>2.00|<2.11');
-  say $vers->versioning_scheme;  # cpan
+  say $vers->scheme;  # cpan
 
-  $vers_string = encode_vers(versioning_scheme => cpan, version_constraint => ['>2.00']);
+  $vers_string = encode_vers(scheme => cpan, constraints => ['>2.00']);
   say $vers_string; # vers:cpan/>2.00
 
-  foreach my $version_constraint (@{$vers->version_constraint}) {
-    if ($version_constraint->contain_version('2.10')) {
-        say "2.10 version is OK";
-    }
+  if ($vers->contains('2.10')) {
+    say "The version is in range";
   }
 
 =head1 DESCRIPTION
@@ -343,13 +315,13 @@ They are exported by default:
 
 =over
 
-=item $vers_string = encode_vers(%vers_components);
+=item $vers_string = encode_vers(%params);
 
 Converts the given C<vers> components to "vers" string. Croaks on error.
 
 This function call is functionally identical to:
 
-   $vers_string = URI::VersionRange->new(%vers_components)->to_string;
+   $vers_string = URI::VersionRange->new(%params)->to_string;
 
 =item $vers = decode_vers($vers_string);
 
@@ -365,23 +337,29 @@ This function call is functionally identical to:
 
 =over
 
-=item $vers = URI::VersionRange->new(%components)
+=item $vers = URI::VersionRange->new(%params)
 
 Create new B<URI::Version> instance using provided C<vers> components
 (scheme, versioning_scheme, version_constraints).
 
 =item $vers->scheme
 
-Always C<vers>
-
-=item $vers->versioning_scheme
-
 By convention the versioning scheme should be the same as the L<URI::PackageURL>
 package C<type> for a given package ecosystem.
 
-=item $vers->version_constraints
+=item $vers->constraints
 
-C<version_constraints> is ARRAY of L<URI::VersionRange::VersionConstraint> object.
+C<constraints> is ARRAY of L<URI::VersionRange::Constraint> object.
+
+=item $vers->contains($version)
+
+Check if a version is contained within a range
+
+    my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.11');
+
+    if ($vers->contains('2.10')) {
+        say "The version is in range";
+    }
 
 =item $vers->to_string
 
@@ -393,7 +371,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>
 
     use Mojo::JSON qw(encode_json);
 
-    say encode_json($vers);  # {"version_constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.11"}],"versioning_scheme":"cpan"}
+    say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.11"}],"scheme":"cpan"}
 
 =item $vers = URI::VersionRange->from_string($vers_string);
 
