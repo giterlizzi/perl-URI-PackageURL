@@ -9,7 +9,7 @@ use Carp;
 use Exporter              qw(import);
 use URI::PackageURL::Util qw(purl_to_urls);
 
-use constant PURL_DEBUG => $ENV{PURL_DEBUG};
+use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
@@ -260,7 +260,7 @@ sub from_string {
         $components{namespace} = join '/', map { _url_decode($_) } @s6;
     }
 
-    if (PURL_DEBUG) {
+    if (DEBUG) {
         say STDERR "-- S1: @s1";
         say STDERR "-- S2: @s2";
         say STDERR "-- S3: @s3";
