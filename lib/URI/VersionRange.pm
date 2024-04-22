@@ -266,11 +266,15 @@ URI::VersionRange - Perl extension for Version Range Specification
   # OO-interface
 
   $vers = URI::VersionRange->new(
-    scheme      => cpan,
+    scheme      => 'cpan',
     constraints => ['>2.00']
   );
   
   say $vers; # vers:cpan/>2.00
+
+  if ($vers->contains('2.10')) {
+    say "The version is in range";
+  }
 
   # Parse "vers" string
   $vers = URI::VersionRange->from_string('vers:cpan/>2.00|<2.11');
@@ -283,22 +287,19 @@ URI::VersionRange - Perl extension for Version Range Specification
   $vers_string = encode_vers(scheme => cpan, constraints => ['>2.00']);
   say $vers_string; # vers:cpan/>2.00
 
-  if ($vers->contains('2.10')) {
-    say "The version is in range";
-  }
 
 =head1 DESCRIPTION
 
 A version range specifier (aka. "vers") is a URI string using the C<vers> URI-scheme with this syntax:
 
-    vers:<versioning-scheme>/<version-constraint>|<version-constraint>|...
+  vers:<versioning-scheme>/<version-constraint>|<version-constraint>|...
 
 C<vers> is the URI-scheme and is an acronym for "VErsion Range Specifier".
 
 The pipe "|" is used as a simple separator between C<version-constraint>.
 Each C<version-constraint> in this pipe-separated list contains a comparator and a version:
 
-    <comparator:version>
+  <comparator:version>
 
 This list of C<version-constraint> are signposts in the version timeline of a package
 that specify version intervals.
@@ -321,7 +322,7 @@ Converts the given C<vers> components to "vers" string. Croaks on error.
 
 This function call is functionally identical to:
 
-   $vers_string = URI::VersionRange->new(%params)->to_string;
+  $vers_string = URI::VersionRange->new(%params)->to_string;
 
 =item $vers = decode_vers($vers_string);
 
@@ -329,7 +330,7 @@ Converts the given "vers" string to L<URI::VersionRange> object. Croaks on error
 
 This function call is functionally identical to:
 
-   $vers = URI::VersionRange->from_string($vers_string);
+  $vers = URI::VersionRange->from_string($vers_string);
 
 =back
 
@@ -337,7 +338,7 @@ This function call is functionally identical to:
 
 =over
 
-=item $vers = URI::VersionRange->new(%params)
+=item $vers = URI::VersionRange->new( scheme => STRING, constraints -> ARRAY )
 
 Create new B<URI::Version> instance using provided C<vers> components
 (scheme, versioning_scheme, version_constraints).
@@ -355,11 +356,11 @@ C<constraints> is ARRAY of L<URI::VersionRange::Constraint> object.
 
 Check if a version is contained within a range
 
-    my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.11');
+  my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.11');
 
-    if ($vers->contains('2.10')) {
-        say "The version is in range";
-    }
+  if ($vers->contains('2.10')) {
+      say "The version is in range";
+  }
 
 =item $vers->to_string
 
@@ -369,9 +370,9 @@ Stringify C<vers> components.
 
 Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>, etc).
 
-    use Mojo::JSON qw(encode_json);
+  use Mojo::JSON qw(encode_json);
 
-    say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.11"}],"scheme":"cpan"}
+  say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.11"}],"scheme":"cpan"}
 
 =item $vers = URI::VersionRange->from_string($vers_string);
 

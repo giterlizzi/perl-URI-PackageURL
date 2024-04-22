@@ -437,7 +437,7 @@ Converts the given Package URL components to "purl" string. Croaks on error.
 
 This function call is functionally identical to:
 
-   $purl_string = URI::PackageURL->new(%purl_components)->to_string;
+    $purl_string = URI::PackageURL->new(%purl_components)->to_string;
 
 =item $purl_components = decode_purl($purl_string);
 
@@ -445,7 +445,7 @@ Converts the given "purl" string to Package URL components. Croaks on error.
 
 This function call is functionally identical to:
 
-   $purl = URI::PackageURL->from_string($purl_string);
+    $purl = URI::PackageURL->from_string($purl_string);
 
 =back
 
