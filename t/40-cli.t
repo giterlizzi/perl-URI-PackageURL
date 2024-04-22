@@ -46,5 +46,3 @@ subtest "App '$t1' (JSON output)" => sub {
 };
 
 done_testing();
-
-#diag($test_1);
