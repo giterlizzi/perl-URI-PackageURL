@@ -322,7 +322,7 @@ Converts the given C<vers> components to "vers" string. Croaks on error.
 
 This function call is functionally identical to:
 
-  $vers_string = URI::VersionRange->new(%params)->to_string;
+    $vers_string = URI::VersionRange->new(%params)->to_string;
 
 =item $vers = decode_vers($vers_string);
 
@@ -330,7 +330,7 @@ Converts the given "vers" string to L<URI::VersionRange> object. Croaks on error
 
 This function call is functionally identical to:
 
-  $vers = URI::VersionRange->from_string($vers_string);
+    $vers = URI::VersionRange->from_string($vers_string);
 
 =back
 
@@ -356,11 +356,11 @@ C<constraints> is ARRAY of L<URI::VersionRange::Constraint> object.
 
 Check if a version is contained within a range
 
-  my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.11');
+    my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.11');
 
-  if ($vers->contains('2.10')) {
-      say "The version is in range";
-  }
+    if ($vers->contains('2.10')) {
+        say "The version is in range";
+    }
 
 =item $vers->to_string
 
@@ -370,9 +370,9 @@ Stringify C<vers> components.
 
 Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>, etc).
 
-  use Mojo::JSON qw(encode_json);
+    use Mojo::JSON qw(encode_json);
 
-  say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.11"}],"scheme":"cpan"}
+    say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.11"}],"scheme":"cpan"}
 
 =item $vers = URI::VersionRange->from_string($vers_string);
 
