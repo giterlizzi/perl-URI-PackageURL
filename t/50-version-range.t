@@ -24,44 +24,24 @@ my $v3 = URI::VersionRange->new(scheme => 'cpan', constraints => ['>v1.00', '!=v
 
 my $v4 = decode_vers($vers);
 
-subtest "Version range (from string)" => sub {
+my $v5 = decode_vers(encode_vers(scheme => 'cpan', constraints => ['>v1.00', '!=v2.10', '<=v3.00']));
 
-    is $v1, $_, $v1 for (($vers, $v2, $v3, $v4));
+my %TESTS = (
+    'from_string'               => $v1,
+    'object-oriented #1'        => $v2,
+    'object-oriented #2'        => $v3,
+    'decode_vers'               => $v4,
+    'encode_vers + decode_vers' => $v5,
+);
 
-    is $v1->contains('v2.11'), !!1, 'The version is in range';
-    is $v1->contains('v2.10'), !!0, 'The version is not in range';
-    is $v1->contains('v0.01'), !!0, 'The version is not in range';
+my @in_range     = ('v2.11', 'v2.99', 'v3.00');
+my @not_in_range = ('v0.01', 'v0.99', 'v2.10');
 
-};
+foreach (sort keys %TESTS) {
+    is $v1, $TESTS{$_}, "Version range ($_)";
+}
 
-subtest "Version range (Object-Oriented #1)" => sub {
-
-    is $v2, $_, $v2 for (($vers, $v1, $v3, $v4));
-
-    is $v2->contains('v2.11'), !!1, 'The version is in range';
-    is $v2->contains('v2.10'), !!0, 'The version is not in range';
-    is $v2->contains('v0.01'), !!0, 'The version is not in range';
-
-};
-
-subtest "Version range (Object-Oriented #2)" => sub {
-
-    is $v3, $_, $v3 for (($vers, $v1, $v2, $v4));
-
-    is $v3->contains('v2.11'), !!1, 'The version is in range';
-    is $v3->contains('v2.10'), !!0, 'The version is not in range';
-    is $v3->contains('v0.01'), !!0, 'The version is not in range';
-
-};
-
-subtest "Version range (decode_vers)" => sub {
-
-    is $v4, $_, $v4 for (($vers, $v1, $v2, $v3));
-
-    is $v4->contains('v2.11'), !!1, 'The version is in range';
-    is $v4->contains('v2.10'), !!0, 'The version is not in range';
-    is $v4->contains('v0.01'), !!0, 'The version is not in range';
-
-};
+is $v1->contains($_), !!1, "$_ version in range ($v1)"     for (sort @in_range);
+is $v1->contains($_), !!0, "$_ version not in range ($v1)" for (sort @not_in_range);
 
 done_testing();
