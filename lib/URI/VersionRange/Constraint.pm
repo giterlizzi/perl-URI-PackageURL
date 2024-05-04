@@ -4,17 +4,23 @@ use feature ':5.10';
 use strict;
 use utf8;
 use warnings;
-use version ();
 
 use Carp;
 use Exporter qw(import);
 
 use overload '""' => 'to_string', fallback => 1;
 
-use constant TRUE  => !!1;
-use constant FALSE => !!0;
+use URI::VersionRange::Version;
 
-our $VERSION = '2.11_03';
+our $VERSION = '2.11_04';
+
+our %COMPARATOR = (
+    '='  => 'equal',
+    '<'  => 'less than',
+    '<=' => 'less than or equal',
+    '>'  => 'greater than',
+    '>=' => 'greater than or equal',
+);
 
 sub new {
 
@@ -28,7 +34,7 @@ sub new {
     return bless $self, $class;
 }
 
-sub vers       { shift->{version} }      # TODO version conflict with "version" module
+sub version    { shift->{version} }
 sub comparator { shift->{comparator} }
 
 sub from_string {
@@ -66,31 +72,16 @@ sub to_string {
 
     return '*' if $self->comparator eq '*';
 
-    return $self->vers if $self->comparator eq '=';
+    return $self->version if $self->comparator eq '=';
 
-    return join '', $self->comparator, $self->vers;
-
-}
-
-sub contains {
-
-    my ($self, $version) = @_;
-
-    return TRUE if $self->comparator eq '*';
-
-    return version->parse($version) == version->parse($self->{version}) if ($self->comparator eq '=');
-    return version->parse($version) != version->parse($self->{version}) if ($self->comparator eq '!=');
-    return version->parse($version) <= version->parse($self->{version}) if ($self->comparator eq '<=');
-    return version->parse($version) < version->parse($self->{version})  if ($self->comparator eq '<');
-    return version->parse($version) >= version->parse($self->{version}) if ($self->comparator eq '>=');
-    return version->parse($version) > version->parse($self->{version})  if ($self->comparator eq '>');
-
-    return FALSE;
+    return join '', $self->comparator, $self->version;
 
 }
+
+sub to_human_string { sprintf '%s %s', $COMPARATOR{$_[0]->{comparator}}, $_[0]->{version} }
 
 sub TO_JSON {
-    return {version => $_[0]->vers, comparator => $_[0]->comparator};
+    return {version => $_[0]->ver, comparator => $_[0]->comparator};
 
 }
 
@@ -117,9 +108,6 @@ URI::VersionRange::Constraint - Version Constraint for Version Range Specificati
   # Parse "vers" string
   $constraint = URI::VersionRange::Constraint->from_string('>2.00');
 
-  if ($constraint->contains('2.10')) {
-    say "The version is in range";
-  }
 
 =head1 DESCRIPTION
 
@@ -149,29 +137,31 @@ L<https://github.com/package-url/purl-spec>
 
 =item $constraint = URI::VersionRange::Constraint->new( comparator => STRING, version => STRING )
 
-Create new B<URI::Version> instance using provided C<vers> components
+Create new B<URI::VersionRange::Constraint> instance using provided C<vers> components
 (scheme, versioning_scheme, version_constraints).
 
 =item $constraint->comparator
 
-=item $constraint->vers
+Return the comparator.
 
-=item $constraint->contains($version)
+=item $constraint->version
 
-Check if a version is contained within a range
-
-    $constraint = URI::VersionRange::Constraint->new(
-        comparator => '>',
-        version    => '2.00'
-    );
-
-    if ($constraint->contains('2.10')) {
-        say "The version is in range";
-    }
+Return the version string.
 
 =item $vers->to_string
 
 Stringify C<vers> components.
+
+=item $vers->to_human_string
+
+Convert the constraint into human readable format.
+
+    $constraint = URI::VersionRange::Constraint->new(
+        comparator => '>=',
+        version    => '2.10'
+    );
+
+    say $constraint->to_human_string; # greater than or equal 2.10
 
 =item $vers->TO_JSON
 

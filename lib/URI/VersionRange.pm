@@ -4,13 +4,13 @@ use feature ':5.10';
 use strict;
 use utf8;
 use warnings;
-use version ();
 
 use Carp;
 use List::Util qw(first);
 use Exporter   qw(import);
 
 use URI::VersionRange::Constraint;
+use URI::VersionRange::Version;
 
 use constant DEBUG => $ENV{VERS_DEBUG};
 use constant TRUE  => !!1;
@@ -18,7 +18,7 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.11_03';
+our $VERSION = '2.11_05';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -42,9 +42,44 @@ sub new {
 
     }
 
-    my $self = {scheme => lc($scheme), constraints => \@constraints};
+    my $self = {
+        scheme         => lc($scheme),
+        constraints    => \@constraints,
+        _version_class => load_version_class_from_scheme(lc($scheme))
+    };
 
     return bless $self, $class;
+
+}
+
+sub load_version_class_from_scheme {
+
+    my $scheme = shift;
+
+    my @CLASSES = (
+        join('::', 'URI::VersionRange::Version', lc($scheme)),    # Schema specific
+        'URI::VersionRange::Version::generic',                    # Generic or used-defined class
+        'URI::VersionRange::Version::cpan'                        # Fallback class
+    );
+
+    my $loaded_version_class = undef;
+
+VERSION_CLASS:
+    foreach my $version_class (@CLASSES) {
+
+        if ($version_class->can('new') or eval "require $version_class; 1") {
+            $loaded_version_class = $version_class;
+            last VERSION_CLASS;
+        }
+
+        DEBUG and say STDERR "-- (E) Failed to load '$version_class' class for '$scheme' scheme ... try next class"
+            if $@;
+
+    }
+
+    DEBUG and say STDERR "-- Loaded '$loaded_version_class' class for '$scheme' scheme";
+
+    return $loaded_version_class;
 
 }
 
@@ -92,7 +127,7 @@ sub from_string {
     # - Split the constraints on pipe "|". The result is a list of <version-constraint>.
     #   Consecutive pipes must be treated as one and leading and trailing pipes ignored.
 
-    $s2[1] =~ s{(^\|)|(\|$)}{}g;
+    $s2[1] =~ s/(^\|)|(\|$)//g;
 
     my @s3 = split(/\|/, $s2[1]);
     $params{constraints} = [];
@@ -128,6 +163,28 @@ sub to_string {
     return join '', 'vers:', $_[0]->scheme, '/', join('|', @{$_[0]->constraints});
 }
 
+sub constraint_contains {
+
+    my ($self, $constraint, $version) = @_;
+
+    return TRUE if $constraint->comparator eq '*';
+
+    my $version_class = $self->{_version_class};
+
+    my $v1 = $version_class->parse($version);
+    my $v2 = $version_class->parse($constraint->version);
+
+    return ($v1 == $v2) if ($constraint->comparator eq '=');
+    return ($v1 != $v2) if ($constraint->comparator eq '!=');
+    return ($v1 <= $v2) if ($constraint->comparator eq '<=');
+    return ($v1 >= $v2) if ($constraint->comparator eq '>=');
+    return ($v1 > $v2)  if ($constraint->comparator eq '<');
+    return ($v1 < $v2)  if ($constraint->comparator eq '>');
+
+    return FALSE;
+
+}
+
 sub contains {
 
     my ($self, $version) = @_;
@@ -135,8 +192,10 @@ sub contains {
     my @first  = ();
     my @second = ();
 
+    my $version_class = $self->{_version_class};
+
     if (scalar @{$self->constraints} == 1) {
-        return $self->constraints->[0]->contains($version);
+        return $self->constraint_contains($self->constraints->[0], $version);
     }
 
     foreach my $constraint (@{$self->constraints}) {
@@ -144,15 +203,18 @@ sub contains {
         # If the "tested version" is equal to the any of the constraint version
         # where the constraint comparator is for equality (any of "=", "<=", or ">=")
         # then the "tested version" is in the range. Check is finished.
+
         return TRUE
             if ((first { $constraint->comparator eq $_ } ('=', '<=', '>='))
-            && (version->parse($version) == version->parse($constraint->vers)));
+            && ($version_class->parse($version) == $version_class->parse($constraint->version)));
 
         # If the "tested version" is equal to the any of the constraint version
         # where the constraint comparator is "=!" then the "tested version" is NOT
         # in the range. Check is finished.
+
         return FALSE
-            if ($constraint->comparator eq '!=' && (version->parse($version) == version->parse($constraint->vers)));
+            if ($constraint->comparator eq '!='
+            && ($version_class->parse($version) == $version_class->parse($constraint->version)));
 
         # Split the constraint list in two sub lists:
         #    a first list where the comparator is "=" or "!="
@@ -166,7 +228,7 @@ sub contains {
     }
 
     if (scalar @second == 1) {
-        return $second[0]->contains($version);
+        return $self->constraint_contains($second[0], $version);
     }
 
     # Iterate over the current and next contiguous constraints pairs (aka. pairwise)
@@ -194,7 +256,7 @@ sub contains {
 
             return TRUE
                 if ((first { $current_constraint->comparator eq $_ } ('<=', '<'))
-                && version->parse($version) < version->parse($current_constraint->vers));
+                && ($version_class->parse($version) < $version_class->parse($current_constraint->version)));
 
             $is_first_iteration = FALSE;
 
@@ -207,8 +269,8 @@ sub contains {
 
         if (   (first { $current_constraint->comparator eq $_ } ('>', '>='))
             && (first { $next_constraint->comparator eq $_ } ('<', '<='))
-            && (version->parse($version) > version->parse($current_constraint->vers))
-            && (version->parse($version) < version->parse($next_constraint->vers)))
+            && ($version_class->parse($version) > $version_class->parse($current_constraint->version))
+            && ($version_class->parse($version) < $version_class->parse($next_constraint->version)))
         {
             return TRUE;
         }
@@ -230,7 +292,7 @@ sub contains {
 
     return TRUE
         if ((first { $next_constraint->comparator eq $_ } ('>', '>='))
-        && (version->parse($version) > version->parse($next_constraint->vers)));
+        && ($version_class->parse($version) > $version_class->parse($next_constraint->version)));
 
     return FALSE;
 
