@@ -5,7 +5,7 @@ use strict;
 use utf8;
 use warnings;
 
-use Carp;
+use Carp                  ();
 use Exporter              qw(import);
 use URI::PackageURL::Util qw(purl_to_urls);
 
@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.11';
+our $VERSION = '2.11_05';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -49,27 +49,35 @@ sub new {
         Carp::croak "Invalid Package URL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /\%/);
     }
 
+
+    # A PyPI package name must be lowercased and underscore "_" replaced with a dash "-".
     $name =~ s/_/-/g if $type eq 'pypi';
 
     if ($type eq 'cpan') {
 
-        # CPAN Author name is MUST be uppercased
+        # To refer to a CPAN distribution name, the "namespace" MUST be present. In this
+        # case, the "namespace" is the CPAN id of the author/publisher. It MUST be
+        # written uppercase, followed by the distribution name in the "name" component. A
+        # distribution name may NEVER contain the string "::".
+
+        # To refer to a CPAN module, the "namespace" MUST be absent. The module name MAY
+        # contain zero or more "::" strings, and the module name MUST NOT contain a "-"
+
         $namespace = uc $namespace if ($namespace);
 
         if (($namespace && $name) && $namespace =~ /\:/) {
-            Carp::carp "Invalid Package URL: CPAN 'namespace' must have the distribution author";
+            Carp::croak "Invalid Package URL: CPAN 'namespace' component must have the distribution author";
         }
 
         if (($namespace && $name) && $name =~ /\:/) {
-            Carp::carp "Invalid Package URL: CPAN 'name' must have the distribution name";
+            Carp::croak "Invalid Package URL: CPAN 'name' component must have the distribution name";
         }
 
         if (!$namespace && $name =~ /\-/) {
-            Carp::carp "Invalid Package URL: CPAN 'name' must have the module name";
+            Carp::croak "Invalid Package URL: CPAN 'name' component must have the module name";
         }
 
     }
-
 
     if ($type eq 'swift') {
         Carp::croak "Invalid Package URL: Swift 'version' is required"   unless defined $version;
@@ -110,9 +118,9 @@ sub new {
 
     if ($type eq 'huggingface') {
 
-  # The version is the model revision Git commit hash. It is case insensitive and must be lowercased in the package URL.
+        # The version is the model revision Git commit hash. It is case insensitive and
+        # must be lowercased in the package URL.
         $version = lc $version;
-
     }
 
     my $self = {
@@ -170,7 +178,7 @@ sub from_string {
     my @s1 = split('#', $string);
 
     if ($s1[1]) {
-        $s1[1] =~ s{(^\/|\/$)}{};
+        $s1[1] =~ s/(^\/|\/$)//;
         my @subpath = map { _url_decode($_) } grep { $_ ne '' && $_ ne '.' && $_ ne '..' } split /\//, $s1[1];
         $components{subpath} = join '/', @subpath;
     }
@@ -222,7 +230,7 @@ sub from_string {
     #     The left side lowercased is the type
     #     The right side is the remainder
 
-    $s3[1] =~ s{(^\/|\/$)}{};
+    $s3[1] =~ s/(^\/|\/$)//;
     my @s4 = split('/', $s3[1], 2);
     $components{type} = lc $s4[0];
 

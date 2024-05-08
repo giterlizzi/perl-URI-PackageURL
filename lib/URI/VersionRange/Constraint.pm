@@ -5,14 +5,14 @@ use strict;
 use utf8;
 use warnings;
 
-use Carp;
+use Carp     ();
 use Exporter qw(import);
 
 use overload '""' => 'to_string', fallback => 1;
 
 use URI::VersionRange::Version;
 
-our $VERSION = '2.11_04';
+our $VERSION = '2.11_05';
 
 our %COMPARATOR = (
     '='  => 'equal',
@@ -80,10 +80,7 @@ sub to_string {
 
 sub to_human_string { sprintf '%s %s', $COMPARATOR{$_[0]->{comparator}}, $_[0]->{version} }
 
-sub TO_JSON {
-    return {version => $_[0]->ver, comparator => $_[0]->comparator};
-
-}
+sub TO_JSON { {version => $_[0]->ver, comparator => $_[0]->comparator} }
 
 1;
 

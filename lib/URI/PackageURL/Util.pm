@@ -5,10 +5,9 @@ use strict;
 use utf8;
 use warnings;
 
-use Carp;
 use Exporter qw(import);
 
-our $VERSION = '2.11_03';
+our $VERSION = '2.11_05';
 our @EXPORT  = qw(purl_to_urls);
 
 sub purl_to_urls {

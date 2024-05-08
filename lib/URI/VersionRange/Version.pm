@@ -27,7 +27,7 @@ URI::VersionRange::Version - Version comparator class
 
   package URI::VersionRange::Version::generic {
 
-    use Version::libversion::XS;
+    use Version::libversion::XS qw(version_compare2);
 
     use parent 'URI::VersionRange::Version';
     use overload ('<=>' => \&spaceship, fallback => 1);
@@ -35,6 +35,20 @@ URI::VersionRange::Version - Version comparator class
     sub spaceship {
         my ($left, $right) = @_;
         return version_compare2($left->[0], $right->[0]);
+    }
+
+  }
+
+  package URI::VersionRange::Version::rpm {
+
+    use RPM4 qw(rpmvercmp);
+
+    use parent 'URI::VersionRange::Version';
+    use overload ('<=>' => \&spaceship, fallback => 1);
+
+    sub spaceship {
+        my ($left, $right) = @_;
+        return rpmvercmp($left->[0], $right->[0]);
     }
 
   }

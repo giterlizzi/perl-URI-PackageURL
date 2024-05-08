@@ -5,7 +5,7 @@ use strict;
 use utf8;
 use warnings;
 
-use Carp;
+use Carp       ();
 use List::Util qw(first);
 use Exporter   qw(import);
 

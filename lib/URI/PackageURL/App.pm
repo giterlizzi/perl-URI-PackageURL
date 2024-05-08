@@ -5,15 +5,15 @@ use strict;
 use warnings;
 use utf8;
 
-use Getopt::Long qw( GetOptionsFromArray :config gnu_compat );
-use Pod::Usage;
-use Carp;
-use JSON::PP;
-use Data::Dumper;
+use Getopt::Long qw(GetOptionsFromArray :config gnu_compat);
+use Pod::Usage   qw(pod2usage);
+use Carp         ();
+use JSON::PP     ();
+use Data::Dumper ();
 
-use URI::PackageURL;
+use URI::PackageURL ();
 
-our $VERSION = '2.11_03';
+our $VERSION = '2.11_05';
 
 sub cli_error {
     my ($error) = @_;
