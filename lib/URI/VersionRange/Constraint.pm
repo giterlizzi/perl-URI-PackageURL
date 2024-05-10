@@ -134,8 +134,7 @@ L<https://github.com/package-url/purl-spec>
 
 =item $constraint = URI::VersionRange::Constraint->new( comparator => STRING, version => STRING )
 
-Create new B<URI::VersionRange::Constraint> instance using provided C<vers> components
-(scheme, versioning_scheme, version_constraints).
+Create new B<URI::VersionRange::Constraint> instance.
 
 =item $constraint->comparator
 
