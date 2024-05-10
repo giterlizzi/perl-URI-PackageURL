@@ -8,7 +8,7 @@ use utf8;
 use warnings;
 use version ();
 
-use overload ('""' => \&to_string, '<=>' => \&spaceship, fallback => 1);
+use overload ('""' => \&to_string, 'cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
 
 sub new       { my $class = shift; bless [@_], $class }
 sub spaceship { (version->parse($_[0]->[0]) <=> version->parse($_[1]->[0])) }
@@ -30,7 +30,7 @@ URI::VersionRange::Version - Version comparator class
     use Version::libversion::XS qw(version_compare2);
 
     use parent 'URI::VersionRange::Version';
-    use overload ('<=>' => \&spaceship, fallback => 1);
+    use overload ('cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
 
     sub spaceship {
         my ($left, $right) = @_;
@@ -44,7 +44,7 @@ URI::VersionRange::Version - Version comparator class
     use RPM4 qw(rpmvercmp);
 
     use parent 'URI::VersionRange::Version';
-    use overload ('<=>' => \&spaceship, fallback => 1);
+    use overload ('cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
 
     sub spaceship {
         my ($left, $right) = @_;
@@ -101,7 +101,7 @@ L<Version::libversion::XS> module:
     use Version::libversion::XS;
 
     use parent 'URI::VersionRange::Version';
-    use overload ('<=>' => \&spaceship, fallback => 1);
+    use overload ('cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
 
     sub spaceship {
         my ($left, $right) = @_;
@@ -117,7 +117,7 @@ This is an another example for the C<rpm> scheme:
     use RPM4;
 
     use parent 'URI::VersionRange::Version';
-    use overload ('<=>' => \&spaceship, fallback => 1);
+    use overload ('cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
 
     sub spaceship {
         my ($left, $right) = @_;
