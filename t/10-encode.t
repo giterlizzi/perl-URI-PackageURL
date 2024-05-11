@@ -27,7 +27,17 @@ my @TESTS = (
         name      => 'libwww-perl',
         version   => '6.76'
     },
-    {purl => 'pkg:cpan/URI', type => 'cpan', name => 'URI'}
+    {purl => 'pkg:cpan/URI', type => 'cpan', name => 'URI'},
+    {
+        purl       => 'pkg:generic/100%25/100%25@100%25?repository_url=https://example.com/100%2525/#100%25',
+        type       => 'generic',
+        namespace  => '100%',
+        name       => '100%',
+        version    => '100%',
+        qualifiers => {'repository_url' => 'https://example.com/100%25/'},
+        subpath    => '100%',
+    },
+    {purl => 'pkg:brew/openssl%401.1@1.1.1w', type => 'brew', name => 'openssl@1.1', version => '1.1.1w'},
 );
 
 
@@ -38,17 +48,21 @@ foreach my $test (@TESTS) {
     subtest "$expected_purl" => sub {
 
         my $got_purl_1 = encode_purl(
-            type      => $test->{type},
-            namespace => $test->{namespace},
-            name      => $test->{name},
-            version   => $test->{version}
+            type       => $test->{type},
+            namespace  => $test->{namespace},
+            name       => $test->{name},
+            version    => $test->{version},
+            qualifiers => $test->{qualifiers},
+            subpath => $test->{subpath},
         );
 
         my $got_purl_2 = URI::PackageURL->new(
-            type      => $test->{type},
-            namespace => $test->{namespace},
-            name      => $test->{name},
-            version   => $test->{version}
+            type       => $test->{type},
+            namespace  => $test->{namespace},
+            name       => $test->{name},
+            version    => $test->{version},
+            qualifiers => $test->{qualifiers},
+            subpath => $test->{subpath},
         );
 
         is($got_purl_1, $expected_purl, "encode_purl --> $got_purl_1");
