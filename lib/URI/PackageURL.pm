@@ -312,7 +312,10 @@ sub to_string {
     }
 
     # Subpath
-    push @purl, ('#', $self->subpath) if ($self->subpath);
+    if ($self->subpath) {
+        my @subpath = map { _url_encode($_) } split '/', $self->subpath;
+        push @purl, ('#', join('/', @subpath));
+    }
 
     return join '', @purl;
 
