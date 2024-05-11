@@ -13,7 +13,7 @@ use Data::Dumper ();
 
 use URI::PackageURL ();
 
-our $VERSION = '2.11_05';
+our $VERSION = '2.20';
 
 sub cli_error {
     my ($error) = @_;
@@ -65,7 +65,7 @@ $progname version $URI::PackageURL::VERSION
 
 Copyright 2022-2024, Giuseppe Di Terlizzi <gdt\@cpan.org>
 
-This program is part of the URI::PackageURL distribution and is free software;
+This program is part of the "URI-PackageURL" distribution and is free software;
 you can redistribute it and/or modify it under the same terms as Perl itself.
 
 Complete documentation for $progname can be found using 'man $progname'
