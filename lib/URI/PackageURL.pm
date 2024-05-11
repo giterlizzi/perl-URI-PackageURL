@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.11_05';
+our $VERSION = '2.20';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -375,21 +375,21 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
     type      => cpan,
     namespace => 'GDT',
     name      => 'URI-PackageURL',
-    version   => '2.11'
+    version   => '2.20'
   );
   
-  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.11
+  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.20
 
   # Parse Package URL string
-  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.11');
+  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.20');
 
   # exported functions
 
-  $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.11');
+  $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.20');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '2.11');
-  say $purl_string; # pkg:cpan/URI::PackageURL@2.11
+  $purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '2.20');
+  say $purl_string; # pkg:cpan/URI::PackageURL@2.20
 
 =head1 DESCRIPTION
 
@@ -432,6 +432,59 @@ architecture, a distro, etc. Optional and type-specific.
 Optional.
 
 =back
+
+=head2 CPAN PURL TYPE
+
+C<cpan> is an official "purl" type (L<https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst>)
+
+=over
+
+=item * The default repository is C<https://www.cpan.org/>.
+
+=item * The C<namespace>:
+
+=over
+
+=item * To refer to a CPAN distribution name, the C<namespace> MUST be present.
+In this case, the namespace is the CPAN id of the author/publisher.
+It MUST be written uppercase, followed by the distribution name in the name component.
+A distribution name may NEVER contain the string C<::>.
+
+=item * To refer to a CPAN module, the C<namespace> MUST be absent.
+The module name MAY contain zero or more C<::> strings, and the module name MUST NOT contain a C<->
+
+=back
+
+=item * The C<name> is the module or distribution name and is case sensitive.
+
+=item * The C<version> is the module or distribution version.
+
+=item * Optional qualifiers may include:
+
+=over
+
+=item * C<repository_url>: CPAN/MetaCPAN/BackPAN/DarkPAN repository base URL (default is https://www.cpan.org)
+
+=item * C<download_url>: URL of package or distribution
+
+=item * C<vcs_url>: extra URL for a package version control system
+
+=item * C<ext>: file extension (default is tar.gz)
+
+=back
+
+=back
+
+=head3 Examples
+
+    pkg:cpan/Perl::Version@1.013
+    pkg:cpan/DROLSKY/DateTime@1.55
+    pkg:cpan/DateTime@1.55
+    pkg:cpan/GDT/URI-PackageURL
+    pkg:cpan/LWP::UserAgent
+    pkg:cpan/OALDERS/libwww-perl@6.76
+    pkg:cpan/URI
+
 
 =head2 FUNCTIONAL INTERFACE
 
@@ -505,7 +558,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>
 
     use Mojo::JSON qw(encode_json);
 
-    say encode_json($purl);  # {"name":"URI-PackageURL","namespace":"GDT","qualifiers":null,"subpath":null,"type":"cpan","version":"2.11"}
+    say encode_json($purl);  # {"name":"URI-PackageURL","namespace":"GDT","qualifiers":null,"subpath":null,"type":"cpan","version":"2.20"}
 
 =item $purl = URI::PackageURL->from_string($purl_string);
 

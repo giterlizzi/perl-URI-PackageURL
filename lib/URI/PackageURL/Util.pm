@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.11_05';
+our $VERSION = '2.20';
 our @EXPORT  = qw(purl_to_urls);
 
 sub purl_to_urls {
@@ -445,13 +445,13 @@ C<cpan>, C<docker>, C<gem>, C<github>, C<gitlab>, C<luarocks>, C<maven>, C<npm>,
 (*)  Only with B<version> component
 (**) Only if B<download_url> qualifier is provided
 
-  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.11');
+  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.20');
 
   print Dumper($urls);
 
   # $VAR1 = {
-  #           'repository' => 'https://metacpan.org/release/GDT/URI-PackageURL-2.11',
-  #           'download' => 'http://www.cpan.org/authors/id/G/GD/GDT/URI-PackageURL-2.11.tar.gz'
+  #           'repository' => 'https://metacpan.org/release/GDT/URI-PackageURL-2.20',
+  #           'download' => 'http://www.cpan.org/authors/id/G/GD/GDT/URI-PackageURL-2.20.tar.gz'
   #         };
 
 =back

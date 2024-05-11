@@ -7,12 +7,10 @@ use strict;
 use utf8;
 use warnings;
 use version ();
+use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
 
-use overload ('""' => \&to_string, 'cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
-
-sub new       { my $class = shift; bless [@_], $class }
-sub spaceship { (version->parse($_[0]->[0]) <=> version->parse($_[1]->[0])) }
-sub to_string { shift->[0] }
+sub new     { my $class = shift; bless [@_], $class }
+sub compare { (version->parse($_[0]->[0]) <=> version->parse($_[1]->[0])) }
 
 *parse = \&new;
 
@@ -27,29 +25,15 @@ URI::VersionRange::Version - Version comparator class
 
   package URI::VersionRange::Version::generic {
 
-    use Version::libversion::XS qw(version_compare2);
+      use Version::libversion::XS qw(version_compare2);
 
-    use parent 'URI::VersionRange::Version';
-    use overload ('cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
+      use parent 'URI::VersionRange::Version';
+      use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
 
-    sub spaceship {
-        my ($left, $right) = @_;
-        return version_compare2($left->[0], $right->[0]);
-    }
-
-  }
-
-  package URI::VersionRange::Version::rpm {
-
-    use RPM4 qw(rpmvercmp);
-
-    use parent 'URI::VersionRange::Version';
-    use overload ('cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
-
-    sub spaceship {
-        my ($left, $right) = @_;
-        return rpmvercmp($left->[0], $right->[0]);
-    }
+      sub compare {
+          my ($left, $right) = @_;
+          return version_compare2($left->[0], $right->[0]);
+      }
 
   }
 
@@ -75,54 +59,60 @@ NOTE: L<URI::VersionRange> provide out-of-the-box the comparator for C<cpan> typ
 
 Create new B<URI::VersionRange::Version> instance using provided version C<value>.
 
-=item $constraint->spaceshift
+=item $v->compare
 
-Return the version comparator for C<< '<=>' >> operator (see L<overload>).
-
-=item $vers->to_string
-
-Stringify C<vers> components.
+Compare the version
 
 =back
 
 =head2 HOW TO CREATE A NEW VERSION COMPARATOR
 
-Create a new package using the naming convention C<< URI::VersionRange::Version::<scheme> >>
-and implement the C<spaceship($left, $right)> method.
+=over
 
-C<$left> and C<$right> are C<ARRAY> and have as their first element the value of
-the version to be compared.
+=item * Create a new package using the naming convention C<< URI::VersionRange::Version::<scheme> >>
+by extending L<URI::VersionRange::Version>.
 
-This is an example that implements a comparator for the C<generic> schema using
+=item * Implements the C<compare($left, $right)> subroutine with the algorithm required
+by the C<scheme>.
+
+C<$left> and C<$right> arguments of C<compare> are C<ARRAY> and have as their
+first element the value of the version to be compared.
+
+=item * L<overload> C<< '<=>' >> and C<cmp> operators using C<compare> subroutine (MANDATORY)
+
+=back
+
+
+This is an example that implements a comparator for the C<generic> scheme using
 L<Version::libversion::XS> module:
 
   package URI::VersionRange::Version::generic {
 
-    use Version::libversion::XS;
+      use Version::libversion::XS;
 
-    use parent 'URI::VersionRange::Version';
-    use overload ('cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
+      use parent 'URI::VersionRange::Version';
+      use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
 
-    sub spaceship {
-        my ($left, $right) = @_;
-        return version_compare2($left->[0], $right->[0]);
-    }
+      sub compare {
+          my ($left, $right) = @_;
+          return version_compare2($left->[0], $right->[0]);
+      }
 
   }
 
-This is an another example for the C<rpm> scheme:
+This is an another example for the C<rpm> scheme using L<RPM4> module:
 
   package URI::VersionRange::Version::rpm {
 
-    use RPM4;
+      use RPM4;
 
-    use parent 'URI::VersionRange::Version';
-    use overload ('cmp' => \&spaceship, '<=>' => \&spaceship, fallback => 1);
+      use parent 'URI::VersionRange::Version';
+      use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
 
-    sub spaceship {
-        my ($left, $right) = @_;
-        return rpmvercmp($left->[0], $right->[0]);
-    }
+      sub compare {
+          my ($left, $right) = @_;
+          return rpmvercmp($left->[0], $right->[0]);
+      }
 
   }
 

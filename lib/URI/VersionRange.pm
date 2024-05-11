@@ -18,7 +18,7 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.11_05';
+our $VERSION = '2.20';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -45,21 +45,21 @@ sub new {
     my $self = {
         scheme         => lc($scheme),
         constraints    => \@constraints,
-        _version_class => load_version_class_from_scheme(lc($scheme))
+        _version_class => _load_version_class_from_scheme(lc($scheme))
     };
 
     return bless $self, $class;
 
 }
 
-sub load_version_class_from_scheme {
+sub _load_version_class_from_scheme {
 
     my $scheme = shift;
 
     my @CLASSES = (
         join('::', 'URI::VersionRange::Version', lc($scheme)),    # Schema specific
         'URI::VersionRange::Version::generic',                    # Generic or used-defined class
-        'URI::VersionRange::Version::cpan'                        # Fallback class
+        'URI::VersionRange::Version'                              # Fallback class
     );
 
     my $loaded_version_class = undef;
@@ -223,9 +223,9 @@ sub contains {
         push @first,  $constraint if ((first { $constraint->comparator eq $_ } ('=',  '!=')));
         push @second, $constraint if (!(first { $constraint->comparator eq $_ } ('=', '!=')));
 
-        return FALSE unless @second;
-
     }
+
+    return FALSE unless @second;
 
     if (scalar @second == 1) {
         return $self->constraint_contains($second[0], $version);
@@ -339,11 +339,11 @@ URI::VersionRange - Perl extension for Version Range Specification
   }
 
   # Parse "vers" string
-  $vers = URI::VersionRange->from_string('vers:cpan/>2.00|<2.11');
+  $vers = URI::VersionRange->from_string('vers:cpan/>2.00|<2.20');
 
   # exported functions
 
-  $vers = decode_vers('vers:cpan/>2.00|<2.11');
+  $vers = decode_vers('vers:cpan/>2.00|<2.20');
   say $vers->scheme;  # cpan
 
   $vers_string = encode_vers(scheme => cpan, constraints => ['>2.00']);
@@ -403,7 +403,7 @@ This function call is functionally identical to:
 =item $vers = URI::VersionRange->new( scheme => STRING, constraints -> ARRAY )
 
 Create new B<URI::Version> instance using provided C<vers> components
-(scheme, versioning_scheme, version_constraints).
+(scheme, constraints).
 
 =item $vers->scheme
 
@@ -418,11 +418,15 @@ C<constraints> is ARRAY of L<URI::VersionRange::Constraint> object.
 
 Check if a version is contained within a range
 
-    my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.11');
+    my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.20');
 
     if ($vers->contains('2.10')) {
         say "The version is in range";
     }
+
+=item $vers->constraint_contains
+
+Check if a version is contained within a specific constraint
 
 =item $vers->to_string
 
@@ -434,7 +438,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>
 
     use Mojo::JSON qw(encode_json);
 
-    say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.11"}],"scheme":"cpan"}
+    say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.20"}],"scheme":"cpan"}
 
 =item $vers = URI::VersionRange->from_string($vers_string);
 
