@@ -5,6 +5,7 @@ Change history for URI-PackageURL
     - Added "Version Range" (vers) support
     - Added "URI::VersionRange::Version::cpan" version comparator for "cpan" scheme
     - Added "vers-tool(1)"
+    - FIX Apply percent-encoding in "subpath" in "to_string" method
 
 2.11 2024-04-19
     - Improved the cpan PURL type to be compatible with the 'PURL-TYPES' specification
