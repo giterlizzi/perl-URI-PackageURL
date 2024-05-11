@@ -65,8 +65,11 @@ foreach my $test (@TESTS) {
             subpath => $test->{subpath},
         );
 
+        my $got_purl_3 = URI::PackageURL->from_string($expected_purl)->to_string;
+
         is($got_purl_1, $expected_purl, "encode_purl --> $got_purl_1");
         is($got_purl_2, $expected_purl, "URI::PackageURL --> $got_purl_2");
+        is($got_purl_3, $expected_purl, "decode+encode --> $got_purl_3");
 
     };
 
