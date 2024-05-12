@@ -1,7 +1,5 @@
 package URI::VersionRange::Version;
 
-BEGIN { *URI::VersionRange::Version::cpan:: = *URI::VersionRange::Version:: }
-
 use feature ':5.10';
 use strict;
 use utf8;
@@ -13,6 +11,11 @@ sub new     { my $class = shift; bless [@_], $class }
 sub compare { (version->parse($_[0]->[0]) <=> version->parse($_[1]->[0])) }
 
 *parse = \&new;
+
+
+package    # hide from pause
+    URI::VersionRange::Version::cpan;
+use parent 'URI::VersionRange::Version';
 
 1;
 
