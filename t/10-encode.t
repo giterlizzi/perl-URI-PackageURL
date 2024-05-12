@@ -38,6 +38,13 @@ my @TESTS = (
         subpath    => '100%',
     },
     {purl => 'pkg:brew/openssl%401.1@1.1.1w', type => 'brew', name => 'openssl@1.1', version => '1.1.1w'},
+    {purl => 'pkg:cpan/Storable@0.6%402',     type => 'cpan', name => 'Storable',    version => '0.6@2'},
+    {
+        purl    => 'pkg:cpan/Storable@0.5%403-bin-1-MacOS',
+        type    => 'cpan',
+        name    => 'Storable',
+        version => '0.5@3-bin-1-MacOS'
+    },
 );
 
 
@@ -53,7 +60,7 @@ foreach my $test (@TESTS) {
             name       => $test->{name},
             version    => $test->{version},
             qualifiers => $test->{qualifiers},
-            subpath => $test->{subpath},
+            subpath    => $test->{subpath},
         );
 
         my $got_purl_2 = URI::PackageURL->new(
@@ -62,7 +69,7 @@ foreach my $test (@TESTS) {
             name       => $test->{name},
             version    => $test->{version},
             qualifiers => $test->{qualifiers},
-            subpath => $test->{subpath},
+            subpath    => $test->{subpath},
         );
 
         my $got_purl_3 = URI::PackageURL->from_string($expected_purl)->to_string;
