@@ -424,9 +424,13 @@ Check if a version is contained within a range
         say "The version is in range";
     }
 
+See L<URI::VersionRange::Version>.
+
 =item $vers->constraint_contains
 
-Check if a version is contained within a specific constraint
+Check if a version is contained within a specific constraint.
+
+See L<URI::VersionRange::Version>.
 
 =item $vers->to_string
 

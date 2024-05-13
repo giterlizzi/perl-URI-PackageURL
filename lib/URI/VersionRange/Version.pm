@@ -51,7 +51,7 @@ URI::VersionRange::Version - Version comparator class
 
 This is a base class for the version comparator.
 
-NOTE: L<URI::VersionRange> provide out-of-the-box the comparator for C<cpan> type.
+NOTE: L<URI::VersionRange> provide out-of-the-box C<cpan> type comparator.
 
 
 =head2 OBJECT-ORIENTED INTERFACE
