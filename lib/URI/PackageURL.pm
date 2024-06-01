@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.20';
+our $VERSION = '2.20_1';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -58,7 +58,7 @@ sub new {
         # To refer to a CPAN distribution name, the "namespace" MUST be present. In this
         # case, the "namespace" is the CPAN id of the author/publisher. It MUST be
         # written uppercase, followed by the distribution name in the "name" component. A
-        # distribution name may NEVER contain the string "::".
+        # distribution name MUST NOT contain the string "::".
 
         # To refer to a CPAN module, the "namespace" MUST be absent. The module name MAY
         # contain zero or more "::" strings, and the module name MUST NOT contain a "-"
@@ -451,7 +451,7 @@ C<cpan> is an official "purl" type (L<https://github.com/package-url/purl-spec/b
 =item * To refer to a CPAN distribution name, the C<namespace> MUST be present.
 In this case, the namespace is the CPAN id of the author/publisher.
 It MUST be written uppercase, followed by the distribution name in the name component.
-A distribution name may NEVER contain the string C<::>.
+A distribution name MUST NOT contain the string C<::>.
 
 =item * To refer to a CPAN module, the C<namespace> MUST be absent.
 The module name MAY contain zero or more C<::> strings, and the module name MUST NOT contain a C<->
