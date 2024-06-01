@@ -21,6 +21,7 @@ sub purl_components_normalize {
         huggingface => \&_huggingface_normalize,
         mlflow      => \&_mlflow_normalize,
         pypi        => \&_pypi_normalize,
+        swid        => \&_swid_normalize,
         swift       => \&_swift_normalize,
     );
 
@@ -148,6 +149,17 @@ sub _pypi_normalize {
 
     # A PyPI package name must be lowercased and underscore "_" replaced with a dash "-".
     $component{name} =~ s/_/-/g;
+
+    return \%component;
+
+}
+
+sub _swid_normalize {
+
+    my (%component) = @_;
+
+    Carp::croak "Invalid Package URL: swid 'tag_id' qualifier is required"
+        unless defined $component{qualifiers}->{tag_id};
 
     return \%component;
 
