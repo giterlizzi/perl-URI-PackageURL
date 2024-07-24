@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.20_2';
+our $VERSION = '2.20_3';
 our @EXPORT  = qw(purl_to_urls purl_components_normalize);
 
 sub purl_components_normalize {
@@ -221,12 +221,11 @@ sub _bitbucket_urls {
 
     my $purl = shift;
 
-    my $name           = $purl->name;
-    my $namespace      = $purl->namespace;
-    my $version        = $purl->version;
-    my $qualifiers     = $purl->qualifiers;
-    my $file_ext       = $qualifiers->{ext}            || 'tar.gz';
-    my $version_prefix = $qualifiers->{version_prefix} || '';
+    my $name       = $purl->name;
+    my $namespace  = $purl->namespace;
+    my $version    = $purl->version;
+    my $qualifiers = $purl->qualifiers;
+    my $file_ext   = $qualifiers->{ext} || 'tar.gz';
 
     my $urls = {};
 
@@ -235,7 +234,7 @@ sub _bitbucket_urls {
     }
 
     if ($version) {
-        $urls->{download} = "https://bitbucket.org/$namespace/$name/get/$version_prefix$version.$file_ext";
+        $urls->{download} = "https://bitbucket.org/$namespace/$name/get/$version.$file_ext";
     }
 
     return $urls;
@@ -360,12 +359,11 @@ sub _github_urls {
 
     my $purl = shift;
 
-    my $name           = $purl->name;
-    my $namespace      = $purl->namespace;
-    my $version        = $purl->version;
-    my $qualifiers     = $purl->qualifiers;
-    my $file_ext       = $qualifiers->{ext}            || 'tar.gz';
-    my $version_prefix = $qualifiers->{version_prefix} || '';
+    my $name       = $purl->name;
+    my $namespace  = $purl->namespace;
+    my $version    = $purl->version;
+    my $qualifiers = $purl->qualifiers;
+    my $file_ext   = $qualifiers->{ext} || 'tar.gz';
 
     my $urls = {};
 
@@ -381,8 +379,7 @@ sub _github_urls {
             $urls->{download} = "https://github.com/$namespace/$name/archive/$version.$file_ext";
         }
         else {
-            $urls->{download}
-                = "https://github.com/$namespace/$name/archive/refs/tags/$version_prefix$version.$file_ext";
+            $urls->{download} = "https://github.com/$namespace/$name/archive/refs/tags/$version.$file_ext";
         }
 
     }
@@ -395,12 +392,11 @@ sub _gitlab_urls {
 
     my $purl = shift;
 
-    my $name           = $purl->name;
-    my $namespace      = $purl->namespace;
-    my $version        = $purl->version;
-    my $qualifiers     = $purl->qualifiers;
-    my $file_ext       = $qualifiers->{ext}            || 'tar.gz';
-    my $version_prefix = $qualifiers->{version_prefix} || '';
+    my $name       = $purl->name;
+    my $namespace  = $purl->namespace;
+    my $version    = $purl->version;
+    my $qualifiers = $purl->qualifiers;
+    my $file_ext   = $qualifiers->{ext} || 'tar.gz';
 
     my $urls = {};
 
@@ -409,8 +405,7 @@ sub _gitlab_urls {
     }
 
     if ($version) {
-        $urls->{download}
-            = "https://gitlab.com/$namespace/$name/-/archive/$version_prefix$version/$name-$version_prefix$version.$file_ext";
+        $urls->{download} = "https://gitlab.com/$namespace/$name/-/archive/$version/$name-$version.$file_ext";
     }
 
     return $urls;
