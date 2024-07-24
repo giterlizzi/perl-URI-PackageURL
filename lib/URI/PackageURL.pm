@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.20_3';
+our $VERSION = '2.21';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -283,7 +283,7 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
     type      => cpan,
     namespace => 'GDT',
     name      => 'URI-PackageURL',
-    version   => '2.20_3'
+    version   => '2.21'
   );
   
   say $purl; # pkg:cpan/GDT/URI-PackageURL@2.20
@@ -296,7 +296,7 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.20');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '2.20_3');
+  $purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '2.21');
   say $purl_string; # pkg:cpan/URI::PackageURL@2.20
 
 =head1 DESCRIPTION

@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.20_3';
+our $VERSION = '2.21';
 our @EXPORT  = qw(purl_to_urls purl_components_normalize);
 
 sub purl_components_normalize {
