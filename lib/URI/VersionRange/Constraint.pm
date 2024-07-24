@@ -12,7 +12,7 @@ use overload '""' => 'to_string', fallback => 1;
 
 use URI::VersionRange::Version;
 
-our $VERSION = '2.20_2';
+our $VERSION = '2.20_3';
 
 our %COMPARATOR = (
     '='  => 'equal',
