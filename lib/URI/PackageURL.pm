@@ -280,7 +280,7 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   
   # Encode components in Package URL string
   $purl = URI::PackageURL->new(
-    type      => cpan,
+    type      => 'cpan',
     namespace => 'GDT',
     name      => 'URI-PackageURL',
     version   => '2.21'
