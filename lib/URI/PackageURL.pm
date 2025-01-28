@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.22';
+our $VERSION = '2.22_1';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -296,8 +296,8 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.22');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, name => 'URI::PackageURL', version => '2.22');
-  say $purl_string; # pkg:cpan/URI::PackageURL@2.22
+  $purl_string = encode_purl(type => cpan, namespace => 'GDT', name => 'URI-PackageURL', version => '2.22');
+  say $purl_string; # pkg:cpan/GDT/URI-PackageURL@2.22
 
 =head1 DESCRIPTION
 
@@ -349,23 +349,11 @@ C<cpan> is an official "purl" type (L<https://github.com/package-url/purl-spec/b
 
 =item * The default repository is C<https://www.cpan.org/>.
 
-=item * The C<namespace>:
+=item * The C<namespace> is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
 
-=over
+=item * The C<name> is the distribution name and is case sensitive.
 
-=item * To refer to a CPAN distribution name, the C<namespace> MUST be present.
-In this case, the namespace is the CPAN id of the author/publisher.
-It MUST be written uppercase, followed by the distribution name in the name component.
-A distribution name MUST NOT contain the string C<::>.
-
-=item * To refer to a CPAN module, the C<namespace> MUST be absent.
-The module name MAY contain zero or more C<::> strings, and the module name MUST NOT contain a C<->
-
-=back
-
-=item * The C<name> is the module or distribution name and is case sensitive.
-
-=item * The C<version> is the module or distribution version.
+=item * The C<version> is the distribution version.
 
 =item * Optional qualifiers may include:
 
@@ -385,13 +373,9 @@ The module name MAY contain zero or more C<::> strings, and the module name MUST
 
 =head3 Examples
 
-    pkg:cpan/Perl::Version@1.013
     pkg:cpan/DROLSKY/DateTime@1.55
-    pkg:cpan/DateTime@1.55
     pkg:cpan/GDT/URI-PackageURL
-    pkg:cpan/LWP::UserAgent
     pkg:cpan/OALDERS/libwww-perl@6.76
-    pkg:cpan/URI
 
 
 =head2 FUNCTIONAL INTERFACE

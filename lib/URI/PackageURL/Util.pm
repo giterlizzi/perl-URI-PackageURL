@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.22';
+our $VERSION = '2.22_1';
 our @EXPORT  = qw(purl_to_urls purl_components_normalize);
 
 sub purl_components_normalize {
@@ -77,15 +77,13 @@ sub _cpan_normalize {
 
     my (%component) = @_;
 
-    # To refer to a CPAN distribution name, the "namespace" MUST be present. In this
-    # case, the "namespace" is the CPAN id of the author/publisher. It MUST be
-    # written uppercase, followed by the distribution name in the "name" component. A
-    # distribution name MUST NOT contain the string "::".
+    # The namespace is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
 
-    # To refer to a CPAN module, the "namespace" MUST be absent. The module name MAY
-    # contain zero or more "::" strings, and the module name MUST NOT contain a "-"
+    unless (defined($component{namespace})) {
+        Carp::croak "Invalid Package URL: CPAN 'namespace' is required";
+    }
 
-    $component{namespace} = uc $component{namespace} if (defined $component{namespace});
+    $component{namespace} = uc $component{namespace};
 
     if ((defined $component{namespace} && defined $component{name}) && $component{namespace} =~ /\:/) {
         Carp::croak "Invalid Package URL: CPAN 'namespace' component must have the distribution author";
@@ -93,10 +91,6 @@ sub _cpan_normalize {
 
     if ((defined $component{namespace} && defined $component{name}) && $component{name} =~ /\:/) {
         Carp::croak "Invalid Package URL: CPAN 'name' component must have the distribution name";
-    }
-
-    if (!defined $component{namespace} && $component{name} =~ /\-/) {
-        Carp::croak "Invalid Package URL: CPAN 'name' component must have the module name";
     }
 
     return \%component;
