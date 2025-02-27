@@ -122,7 +122,7 @@ __END__
 
 =head1 NAME
 
-URI::VersionRange::App - URL::VersionRange (vers) Command Line Interface
+URI::VersionRange::App - URI::VersionRange (vers) Command Line Interface
 
 =head1 SYNOPSIS
 

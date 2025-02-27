@@ -212,7 +212,7 @@ __END__
 
 =head1 NAME
 
-URI::PackageURL::App - URL::PackageURL (purl) Command Line Interface
+URI::PackageURL::App - URI::PackageURL (purl) Command Line Interface
 
 =head1 SYNOPSIS
 
