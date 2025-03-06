@@ -10,7 +10,7 @@ use URI::PackageURL;
 my $t1 = 'pkg:cpan/GDT/URI-PackageURL@2.22';
 my $t2 = 'pkg:deb/debian/curl@7.50.3-1?arch=i386&distro=jessie';
 my $t3 = 'pkg:golang/google.golang.org/genproto@abcdedf#googleapis/api/annotations';
-my $t4 = 'pkg:docker/customer/dockerimage@sha256:244fd47e07d1004f0aed9c?repository_url=gcr.io';
+my $t4 = 'pkg:docker/customer/dockerimage@sha256%3A244fd47e07d1004f0aed9c?repository_url=gcr.io';
 my $t5 = 'pkg:generic/ns/n@m#?@version?qualifier=#v@lue#subp@th?';
 
 subtest "Decode '$t1'" => sub {

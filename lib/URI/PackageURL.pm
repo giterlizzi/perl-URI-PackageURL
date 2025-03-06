@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.22';
+our $VERSION = '2.22_2';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -201,7 +201,7 @@ sub to_string {
     }
 
     # Name
-    push @purl, _url_encode($self->name);
+    push @purl, _encode($self->name);
 
     # Version
     push @purl, ('@', _url_encode($self->version)) if ($self->version);
@@ -209,7 +209,7 @@ sub to_string {
     # Qualifiers
     if (my $qualifiers = $self->qualifiers) {
 
-        my @qualifiers = map { sprintf('%s=%s', lc $_, _url_encode($qualifiers->{$_})) }
+        my @qualifiers = map { sprintf('%s=%s', lc $_, _encode($qualifiers->{$_})) }
             grep { $qualifiers->{$_} } sort keys %{$qualifiers};
 
         push @purl, ('?', join('&', @qualifiers)) if (@qualifiers);
@@ -218,8 +218,15 @@ sub to_string {
 
     # Subpath
     if ($self->subpath) {
-        my @subpath = map { _url_encode($_) } split '/', $self->subpath;
+
+        my $subpath = $self->subpath;
+
+        $subpath =~ s{\.\./}{};
+        $subpath =~ s{\./}{};
+
+        my @subpath = map { _encode($_) } split '/', $subpath;
         push @purl, ('#', join('/', @subpath));
+    
     }
 
     return join '', @purl;
@@ -247,12 +254,25 @@ sub TO_JSON {
 
 sub _url_encode {
 
-    my $string = shift;
+    my ($string, $pattern) = @_;
 
-    # RFC-3986 (but exclude "/" and ":")
-    $string =~ s/([^A-Za-z0-9\-._~\/:])/sprintf '%%%02X', ord $1/ge;
+    # RFC-3986
+    $pattern //= '^A-Za-z0-9\-._~/' unless $pattern;
+    $string =~ s/([$pattern])/sprintf '%%%02X', ord $1/ge;
     return $string;
 
+}
+
+sub _encode {
+
+    my $string = shift;
+
+    $string = _url_encode($string);
+
+    $string =~ s/%3A/:/g;
+    $string =~ s|%2F|/|g;
+
+    return $string;
 }
 
 sub _url_decode {
