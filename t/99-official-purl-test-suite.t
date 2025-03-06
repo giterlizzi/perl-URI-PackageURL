@@ -25,7 +25,7 @@ sub test_purl_encode {
         );
     };
 
-    TODO: {
+TODO: {
         local $TODO = 'SKIP test because in ENCODE generate well format PURL string' if ($test->{purl} =~ /pkg%3A/);
 
         if ($test->{is_invalid}) {
@@ -52,7 +52,7 @@ sub test_purl_decode {
 
     my $test_name = $test->{description};
 
-    my $purl = eval { URI::PackageURL->from_string($test->{purl}) };
+    my $purl = eval { URI::PackageURL->from_string($test->{canonical_purl} || $test->{purl}) };
 
     if ($test->{is_invalid}) {
         like($@, qr/(Invalid|Malformed) Package URL/i, "DECODE: $test_name");
@@ -65,7 +65,26 @@ sub test_purl_decode {
     }
 
     if (!$test->{is_invalid}) {
+
         is($purl->to_string, $test->{canonical_purl}, "DECODE: $test_name");
+
+        my @components = qw(type namespace name version subpath);
+
+    TODO: {
+
+            local $TODO = 'SKIP test because in canonical subpath exist "." or ".." (see package-url/purl-spec#404 PR)'
+                if ($test->{subpath} && $test->{subpath} =~ /\./);
+
+            foreach my $component (@components) {
+                is($purl->$component, $test->{$component}, "DECODE: Compare '$test_name' $component component");
+            }
+
+        }
+
+        my $qualifiers = $purl->qualifiers;
+
+        is_deeply($qualifiers, $test->{qualifiers}, "DECODE: Compare '$test_name' qualifiers") if %{$qualifiers};
+
         return;
     }
 
