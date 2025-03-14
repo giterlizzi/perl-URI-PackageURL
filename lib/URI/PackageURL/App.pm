@@ -13,7 +13,7 @@ use Data::Dumper ();
 
 use URI::PackageURL ();
 
-our $VERSION = '2.22_1';
+our $VERSION = '2.22_2';
 
 sub cli_error {
     my ($error) = @_;
@@ -212,7 +212,7 @@ __END__
 
 =head1 NAME
 
-URI::PackageURL::App - URL::PackageURL (purl) Command Line Interface
+URI::PackageURL::App - URI::PackageURL (purl) Command Line Interface
 
 =head1 SYNOPSIS
 

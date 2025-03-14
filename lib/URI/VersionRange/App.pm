@@ -13,7 +13,7 @@ use Data::Dumper ();
 
 use URI::VersionRange ();
 
-our $VERSION = '2.22_1';
+our $VERSION = '2.22_2';
 
 sub cli_error {
     my ($error) = @_;
@@ -122,7 +122,7 @@ __END__
 
 =head1 NAME
 
-URI::VersionRange::App - URL::VersionRange (vers) Command Line Interface
+URI::VersionRange::App - URI::VersionRange (vers) Command Line Interface
 
 =head1 SYNOPSIS
 
