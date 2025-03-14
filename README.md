@@ -108,4 +108,4 @@ Using App::cpanminus:
 
 ## Copyright
 
- - Copyright 2022-2024 © Giuseppe Di Terlizzi
+ - Copyright 2022-2025 © Giuseppe Di Terlizzi
