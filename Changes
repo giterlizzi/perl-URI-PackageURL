@@ -1,5 +1,13 @@
 Change history for URI-PackageURL
 
+2.xx 2025-xx-xx
+    - Updated CPAN PURL type spec
+    - Improved encoding
+    - Added support for "vers:none/*" and "vers:all/*" in "URI::VersionRange"
+    - Improved version comparator class loader in "URI::VersionRange"
+    - Updated tests
+    - Synced "test-suite-data.json" from "package-url/purl-spec"
+
 2.22 2024-12-16
     - Improved parsing of non-canonical PURL (package-url/purl-spec#363)
     - Improved "URI::VersionRange->constraint_contains"

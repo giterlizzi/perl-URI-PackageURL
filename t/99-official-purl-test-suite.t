@@ -72,7 +72,7 @@ sub test_purl_decode {
 
     TODO: {
 
-            local $TODO = 'SKIP test because in canonical subpath exist "." or ".." (see package-url/purl-spec#404 PR)'
+            local $TODO = 'SKIP test because in canonical subpath exist "." or ".."'
                 if ($test->{subpath} && $test->{subpath} =~ /\./);
 
             foreach my $component (@components) {

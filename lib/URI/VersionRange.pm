@@ -18,7 +18,7 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.22_2';
+our $VERSION = '2.22_3';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -42,17 +42,34 @@ sub new {
 
     }
 
+    $scheme = lc $scheme;
+
     my $self = {
-        scheme         => lc($scheme),
+        scheme         => $scheme,
         constraints    => \@constraints,
-        _version_class => _load_version_class_from_scheme(lc($scheme))
+        _version_class => _scheme_version_class($scheme)
     };
 
     return bless $self, $class;
 
 }
 
-sub _load_version_class_from_scheme {
+sub _load_version_class {
+
+    my $version_class = shift;
+
+    if ($version_class->can('new') or eval "require $version_class; 1") {
+        DEBUG and say STDERR "-- Loaded '$version_class' class";
+        return 1;
+    }
+
+    DEBUG and say STDERR "-- (E) Failed to load '$version_class' class:" if $@;
+
+    return 0;
+
+}
+
+sub _scheme_version_class {
 
     my $scheme = shift;
 
@@ -62,24 +79,13 @@ sub _load_version_class_from_scheme {
         'URI::VersionRange::Version'                              # Fallback class
     );
 
-    my $loaded_version_class = undef;
-
-VERSION_CLASS:
     foreach my $version_class (@CLASSES) {
-
-        if ($version_class->can('new') or eval "require $version_class; 1") {
-            $loaded_version_class = $version_class;
-            last VERSION_CLASS;
+        if (_load_version_class($version_class)) {
+            return $version_class;
         }
-
-        DEBUG and say STDERR "-- (E) Failed to load '$version_class' class for '$scheme' scheme ... try next class"
-            if $@;
-
     }
 
-    DEBUG and say STDERR "-- Loaded '$loaded_version_class' class for '$scheme' scheme";
-
-    return $loaded_version_class;
+    Carp::croak 'Unable to find version scheme class';
 
 }
 
@@ -94,6 +100,10 @@ sub from_string {
     my ($class, $string) = @_;
 
     if ($string !~ /$VERS_REGEXP/) {
+        Carp::croak 'Malformed Version Range string';
+    }
+
+    if ($string =~ /^vers\:(none|all)\// && $string !~ /^vers\:(none|all)\/\*$/) {
         Carp::croak 'Malformed Version Range string';
     }
 

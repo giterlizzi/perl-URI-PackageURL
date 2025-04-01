@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.22_2';
+our $VERSION = '2.22_3';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -226,7 +226,7 @@ sub to_string {
 
         my @subpath = map { _encode($_) } split '/', $subpath;
         push @purl, ('#', join('/', @subpath));
-    
+
     }
 
     return join '', @purl;
