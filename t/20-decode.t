@@ -7,7 +7,7 @@ use Test::More;
 
 use URI::PackageURL;
 
-my $t1 = 'pkg:cpan/GDT/URI-PackageURL@2.22';
+my $t1 = 'pkg:cpan/GDT/URI-PackageURL@2.23';
 my $t2 = 'pkg:deb/debian/curl@7.50.3-1?arch=i386&distro=jessie';
 my $t3 = 'pkg:golang/google.golang.org/genproto@abcdedf#googleapis/api/annotations';
 my $t4 = 'pkg:docker/customer/dockerimage@sha256:244fd47e07d1004f0aed9c?repository_url=gcr.io';
@@ -22,7 +22,7 @@ subtest "Decode '$t1'" => sub {
     is($purl->type,      'cpan',           'Type');
     is($purl->namespace, 'GDT',            'Namespace');
     is($purl->name,      'URI-PackageURL', 'Name');
-    is($purl->version,   '2.22',           'Version');
+    is($purl->version,   '2.23',           'Version');
 
     is($purl->to_string, $t1, 'PackageURL');
 

@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.22_4';
+our $VERSION = '2.23';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -338,14 +338,15 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
     type      => 'cpan',
     namespace => 'GDT',
     name      => 'URI-PackageURL',
-    version   => '2.22'
+    version   => '2.23'
   );
   
-  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.22
+  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.23
 
   # Parse Package URL string
-  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.22');
-
+  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.23');
+  
+  
   # use setter methods
   
   my $purl = URI::PackageURL->new(type => 'cpan', namespace => 'GDT', name => 'URI-PackageURL');
@@ -356,17 +357,19 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   $purl->version('2.23');
   say $purl; # pkg:cpan/GDT/URI-PackageURL@2.23
   say $purl->version; # 2.23
-
+  
+  
   # exported functions
 
-  $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.22');
+  $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.23');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, namespace => 'GDT', name => 'URI-PackageURL', version => '2.22');
-  say $purl_string; # pkg:cpan/GDT/URI-PackageURL@2.22
+  $purl_string = encode_purl(type => cpan, namespace => 'GDT', name => 'URI-PackageURL', version => '2.23');
+  say $purl_string; # pkg:cpan/GDT/URI-PackageURL@2.23
+  
   
   # uses the legacy CPAN PURL type, to be used only for compatibility (will be removed in the future)
-    
+  
   $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
   URI::PackageURL->new(type => 'cpan', name => 'URI::PackageURL');
   
@@ -544,7 +547,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Cpanel::JSO
     #    "scheme" : "pkg",
     #    "subpath" : null,
     #    "type" : "cpan",
-    #    "version" : "2.22"
+    #    "version" : "2.23"
     # }
 
 =item $purl = URI::PackageURL->from_string($purl_string);

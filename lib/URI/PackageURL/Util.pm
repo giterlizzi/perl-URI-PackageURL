@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.22_4';
+our $VERSION = '2.23';
 our @EXPORT  = qw(purl_to_urls purl_components_normalize);
 
 sub purl_components_normalize {
@@ -581,7 +581,7 @@ URI::PackageURL::Util - Utility for URI::PackageURL
 
   use URI::PackageURL::Util qw(purl_to_urls);
 
-  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.22');
+  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.23');
 
   $filename = basename($urls->{download});
   $ua->mirror($urls->{download}, "/tmp/$filename");
@@ -627,13 +627,13 @@ C<cpan>, C<docker>, C<gem>, C<github>, C<gitlab>, C<luarocks>, C<maven>, C<npm>,
 (*)  Only with B<version> component
 (**) Only if B<download_url> qualifier is provided
 
-  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.22');
+  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.23');
 
   print Dumper($urls);
 
   # $VAR1 = {
-  #           'repository' => 'https://metacpan.org/release/GDT/URI-PackageURL-2.22',
-  #           'download' => 'http://www.cpan.org/authors/id/G/GD/GDT/URI-PackageURL-2.22.tar.gz'
+  #           'repository' => 'https://metacpan.org/release/GDT/URI-PackageURL-2.23',
+  #           'download' => 'http://www.cpan.org/authors/id/G/GD/GDT/URI-PackageURL-2.23.tar.gz'
   #         };
 
 =back

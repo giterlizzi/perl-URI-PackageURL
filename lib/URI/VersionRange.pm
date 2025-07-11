@@ -18,7 +18,7 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.22_4';
+our $VERSION = '2.23';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -345,11 +345,11 @@ URI::VersionRange - Perl extension for Version Range Specification
   }
 
   # Parse "vers" string
-  $vers = URI::VersionRange->from_string('vers:cpan/>2.00|<2.22');
+  $vers = URI::VersionRange->from_string('vers:cpan/>2.00|<2.23');
 
   # exported functions
 
-  $vers = decode_vers('vers:cpan/>2.00|<2.22');
+  $vers = decode_vers('vers:cpan/>2.00|<2.23');
   say $vers->scheme;  # cpan
 
   $vers_string = encode_vers(scheme => cpan, constraints => ['>2.00']);
@@ -424,7 +424,7 @@ C<constraints> is ARRAY of L<URI::VersionRange::Constraint> object.
 
 Check if a version is contained within a range
 
-    my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.22');
+    my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.23');
 
     if ($vers->contains('2.10')) {
         say "The version is in range";
@@ -448,7 +448,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>
 
     use Mojo::JSON qw(encode_json);
 
-    say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.22"}],"scheme":"cpan"}
+    say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.23"}],"scheme":"cpan"}
 
 =item $vers = URI::VersionRange->from_string($vers_string);
 
