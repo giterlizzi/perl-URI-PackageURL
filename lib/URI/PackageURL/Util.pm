@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.22_3';
+our $VERSION = '2.22_4';
 our @EXPORT  = qw(purl_to_urls purl_components_normalize);
 
 sub purl_components_normalize {
@@ -80,17 +80,14 @@ sub _cpan_normalize {
     # The namespace is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
 
     unless (defined($component{namespace})) {
-        Carp::croak "Invalid Package URL: CPAN 'namespace' is required";
+        Carp::croak
+            "Invalid Package URL: The CPAN 'namespace' is required and must contain the CPAN ID of the author/publisher";
     }
 
     $component{namespace} = uc $component{namespace};
 
-    if ((defined $component{namespace} && defined $component{name}) && $component{namespace} =~ /\:/) {
-        Carp::croak "Invalid Package URL: CPAN 'namespace' component must have the distribution author";
-    }
-
-    if ((defined $component{namespace} && defined $component{name}) && $component{name} =~ /\:/) {
-        Carp::croak "Invalid Package URL: CPAN 'name' component must have the distribution name";
+    if ($component{name} =~ /\:/) {
+        Carp::croak "Invalid Package URL: The CPAN 'name' component must have the distribution name";
     }
 
     return \%component;
