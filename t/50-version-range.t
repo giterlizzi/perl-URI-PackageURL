@@ -51,14 +51,15 @@ like "$@", qr/Malformed Version Range string/;
 
 # Test generic schemes
 is decode_vers('vers:generic/*')->contains($_), !!1, "$_ version in range" for (sort @in_range);
-is decode_vers('vers:all/*')->contains($_),     !!1, "$_ version in range" for (sort @in_range);
 is decode_vers('vers:none/*')->contains($_),    !!1, "$_ version in range" for (sort @in_range);
-
-eval { decode_vers('vers:all/1.00') };
-like "$@", qr/Malformed Version Range string/;
+is decode_vers('vers:all/*')->contains($_),     !!1, "$_ version in range" for (sort @in_range);
+is decode_vers('vers:intdot/*')->contains($_),  !!1, "$_ version in range" for (sort @in_range);
+is decode_vers('vers:semver/*')->contains($_),  !!1, "$_ version in range" for (sort @in_range);
 
 eval { decode_vers('vers:none/1.00') };
 like "$@", qr/Malformed Version Range string/;
 
+eval { decode_vers('vers:all/1.00') };
+like "$@", qr/Malformed Version Range string/;
 
 done_testing();

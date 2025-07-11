@@ -18,7 +18,7 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.22_3';
+our $VERSION = '2.22_4';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -44,11 +44,7 @@ sub new {
 
     $scheme = lc $scheme;
 
-    my $self = {
-        scheme         => $scheme,
-        constraints    => \@constraints,
-        _version_class => _scheme_version_class($scheme)
-    };
+    my $self = {scheme => $scheme, constraints => \@constraints, _version_class => _scheme_version_class($scheme)};
 
     return bless $self, $class;
 
