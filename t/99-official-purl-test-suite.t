@@ -110,7 +110,8 @@ foreach my $test (@{$test_suite_data}) {
 
 TODO: {
 
-        local $TODO = '(!) TEMPORARY SKIP CPAN TESTS' if ($test->{type} eq 'cpan');
+        # local $TODO = '(!) TEMPORARY SKIP CPAN TESTS' if ($test->{type} eq 'cpan');
+        $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
 
         test_purl_encode($test);
         test_purl_decode($test, 'purl');

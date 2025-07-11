@@ -77,6 +77,27 @@ sub _cpan_normalize {
 
     my (%component) = @_;
 
+    # Use legacy CPAN PURL type SPEC
+    if ($ENV{PURL_LEGACY_CPAN_TYPE}) {
+
+        $component{namespace} = uc $component{namespace} if (defined $component{namespace});
+
+        if ((defined $component{namespace} && defined $component{name}) && $component{namespace} =~ /\:/) {
+            Carp::croak "Invalid Package URL: CPAN 'namespace' component must have the distribution author";
+        }
+
+        if ((defined $component{namespace} && defined $component{name}) && $component{name} =~ /\:/) {
+            Carp::croak "Invalid Package URL: CPAN 'name' component must have the distribution name";
+        }
+
+        if (!defined $component{namespace} && $component{name} =~ /\-/) {
+            Carp::croak "Invalid Package URL: CPAN 'name' component must have the module name";
+        }
+
+        return \%component;
+
+    }
+
     # The namespace is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
 
     unless (defined($component{namespace})) {
