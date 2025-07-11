@@ -346,6 +346,17 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   # Parse Package URL string
   $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.22');
 
+  # use setter methods
+  
+  my $purl = URI::PackageURL->new(type => 'cpan', namespace => 'GDT', name => 'URI-PackageURL');
+
+  say $purl; # pkg:cpan/GDT/URI-PackageURL
+  say $purl->version; # undef
+
+  $purl->version('2.23');
+  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.23
+  say $purl->version; # 2.23
+
   # exported functions
 
   $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.22');
@@ -353,6 +364,12 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
 
   $purl_string = encode_purl(type => cpan, namespace => 'GDT', name => 'URI-PackageURL', version => '2.22');
   say $purl_string; # pkg:cpan/GDT/URI-PackageURL@2.22
+  
+  # uses the legacy CPAN PURL type, to be used only for compatibility (will be removed in the future)
+    
+  $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
+  URI::PackageURL->new(type => 'cpan', name => 'URI::PackageURL');
+  
 
 =head1 DESCRIPTION
 
@@ -432,6 +449,11 @@ C<cpan> is an official "purl" type (L<https://github.com/package-url/purl-spec/b
     pkg:cpan/GDT/URI-PackageURL
     pkg:cpan/OALDERS/libwww-perl@6.76
 
+=head3 Legacy CPAN PURL type
+
+Add C<PURL_LEGACY_CPAN_TYPE> environment variable for use the legacy CPAN PURL type.
+
+B<NOTE>: This is only to be used for compatibility purposes (it will be removed in the future).
 
 =head2 FUNCTIONAL INTERFACE
 
