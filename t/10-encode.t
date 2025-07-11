@@ -16,7 +16,7 @@ my @TESTS = (
         name      => 'DateTime',
         version   => '1.55'
     },
-    {purl => 'pkg:cpan/GDT/URI-PackageURL', type => 'cpan', namespace => 'GDT', name => 'URI-PackageURL',},
+    {purl => 'pkg:cpan/GDT/URI-PackageURL', type => 'cpan', namespace => 'GDT', name => 'URI-PackageURL'},
     {
         purl      => 'pkg:cpan/OALDERS/libwww-perl@6.76',
         type      => 'cpan',
