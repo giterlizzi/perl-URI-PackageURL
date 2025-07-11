@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.22_3';
+our $VERSION = '2.22_4';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -22,7 +22,7 @@ sub new {
 
     my ($class, %params) = @_;
 
-    my $scheme     = delete $params{scheme} // 'pkg';
+    my $scheme     = 'pkg';    # The scheme is a constant with the value "pkg".
     my $type       = delete $params{type} or Carp::croak "Invalid Package URL: 'type' component is required";
     my $namespace  = delete $params{namespace};
     my $name       = delete $params{name} or Carp::croak "Invalid Package URL: 'name' component is required";
@@ -42,13 +42,25 @@ sub new {
 
 }
 
-sub scheme     { shift->{scheme} }
-sub type       { shift->{type} }
-sub namespace  { shift->{namespace} }
-sub name       { shift->{name} }
-sub version    { shift->{version} }
-sub qualifiers { shift->{qualifiers} }
-sub subpath    { shift->{subpath} }
+sub _component {
+
+    my ($self, $component, $value) = @_;
+
+    if (@_ == 3) {
+        $self->{$component} = $value;
+    }
+
+    return $self->{$component};
+
+}
+
+sub scheme     {'pkg'}
+sub type       { shift->_component('type',       @_) }
+sub namespace  { shift->_component('namespace',  @_) }
+sub name       { shift->_component('name',       @_) }
+sub version    { shift->_component('version',    @_) }
+sub qualifiers { shift->_component('qualifiers', @_) }
+sub subpath    { shift->_component('subpath',    @_) }
 
 sub encode_purl { __PACKAGE__->new(@_)->to_string }
 sub decode_purl { __PACKAGE__->from_string(shift) }
@@ -97,7 +109,7 @@ sub from_string {
     #         The value is the percent-decoded right side
     #         UTF-8-decode the value if needed in your programming language
     #         Discard any key/value pairs where the value is empty
-    #         If the key is checksums, split the value on ',' to create a list of checksums
+    #         If the key is checksum, split the value on ',' to create a list of checksum
     #     This list of key/value is the qualifiers object
 
     my @s2 = split(/\?([^\?]+)$/, $s1[0]);
@@ -108,11 +120,17 @@ sub from_string {
 
         foreach my $qualifier (@qualifiers) {
 
-            my ($key, $value) = split('=', $qualifier);
+            my ($key, $value) = ($qualifier =~ /^([^=]+)(?:=(.*))?$/);
             $value = _url_decode($value);
 
-            if ($key eq 'checksums') {
+            if ($key eq 'checksums' || $key eq 'checksum') {
+
+                if ($key eq 'checksums') {
+                    Carp::carp "Detected 'checksums' qualifier. Use 'checksum' qualifier instead.";
+                }
+
                 $value = [split(',', $value)];
+
             }
 
             $components{qualifiers}->{lc $key} = $value;
@@ -204,10 +222,24 @@ sub to_string {
     push @purl, _encode($self->name);
 
     # Version
-    push @purl, ('@', _url_encode($self->version)) if ($self->version);
+    push @purl, ('@', _encode($self->version)) if ($self->version);
 
     # Qualifiers
     if (my $qualifiers = $self->qualifiers) {
+
+        if (defined $qualifiers->{checksum} && ref $qualifiers->{checksum} eq 'ARRAY') {
+            $qualifiers->{checksum} = join ',', @{$qualifiers->{checksum}};
+        }
+
+        if (defined $qualifiers->{checksums} && ref $qualifiers->{checksums} eq 'ARRAY') {
+            $qualifiers->{checksums} = join ',', @{$qualifiers->{checksums}};
+        }
+
+        # TODO Use URI::VersionRange during qualifiers decode ?
+        if (defined $qualifiers->{vers} && ref $qualifiers->{vers} eq 'URI::VersionRange') {
+            $qualifiers->{vers} = $qualifiers->{vers}->to_string;
+            say STDERR $qualifiers->{vers};
+        }
 
         my @qualifiers = map { sprintf('%s=%s', lc $_, _encode($qualifiers->{$_})) }
             grep { $qualifiers->{$_} } sort keys %{$qualifiers};
@@ -237,11 +269,12 @@ sub to_urls {
     purl_to_urls(shift);
 }
 
-sub TO_JSON {
+sub to_hash {
 
     my $self = shift;
 
     return {
+        scheme     => $self->scheme,
         type       => $self->type,
         name       => $self->name,
         version    => $self->version,
@@ -251,6 +284,8 @@ sub TO_JSON {
     };
 
 }
+
+sub TO_JSON { shift->to_hash }
 
 sub _url_encode {
 
@@ -269,8 +304,8 @@ sub _encode {
 
     $string = _url_encode($string);
 
-    $string =~ s/%3A/:/g;
-    $string =~ s|%2F|/|g;
+    $string =~ s{%3A}{:}g;
+    $string =~ s{%2F}{/}g;
 
     return $string;
 }
@@ -371,7 +406,7 @@ C<cpan> is an official "purl" type (L<https://github.com/package-url/purl-spec/b
 
 =item * The C<namespace> is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
 
-=item * The C<name> is the distribution name and is case sensitive.
+=item * The C<name> is the distribution name and is case sensitive. A distribution name MUST NOT contain the string C<::>.
 
 =item * The C<version> is the distribution version.
 
@@ -431,6 +466,10 @@ This function call is functionally identical to:
 Create new B<URI::PackageURL> instance using provided Package URL components
 (type, name, version ,etc).
 
+=item $purl->scheme
+
+The scheme is a constant with the value "pkg".
+
 =item $purl->type
 
 The package "type" or package "protocol" such as cpan, maven, npm, nuget, gem, pypi, etc.
@@ -464,13 +503,27 @@ Stringify Package URL components.
 
 Return B<download> and/or B<repository> URLs.
 
+=item $purl->to_hash
+
+Turn PURL components into a hash reference.
+
 =item $purl->TO_JSON
 
-Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>, etc).
+Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Cpanel::JSON::XS>, L<Mojo::JSON>, etc).
 
     use Mojo::JSON qw(encode_json);
 
-    say encode_json($purl);  # {"name":"URI-PackageURL","namespace":"GDT","qualifiers":null,"subpath":null,"type":"cpan","version":"2.22"}
+    say encode_json($purl);
+
+    # {
+    #    "name" : "URI-PackageURL",
+    #    "namespace" : "GDT",
+    #    "qualifiers" : {},
+    #    "scheme" : "pkg",
+    #    "subpath" : null,
+    #    "type" : "cpan",
+    #    "version" : "2.22"
+    # }
 
 =item $purl = URI::PackageURL->from_string($purl_string);
 
