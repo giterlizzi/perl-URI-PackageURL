@@ -14,7 +14,7 @@ lib/URI/VersionRange/Constraint.pm
 lib/URI/VersionRange/Version.pm
 LICENSE
 Makefile.PL
-MANIFEST			This list of files
+MANIFEST
 README.md
 t/00-load.t
 t/10-encode.t
@@ -24,8 +24,11 @@ t/40-cli.t
 t/50-version-range.t
 t/90-cpan-distname-info.t
 t/99-official-purl-test-suite.t
+t/99-official-purl-tests.t
 t/manifest.t
+t/official-tests/specification-test.json
 t/pod-coverage.t
 t/pod.t
 t/sync-purl-test-suite-data.sh
+t/sync-purl-tests.sh
 t/test-suite-data.json
