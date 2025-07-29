@@ -6,18 +6,14 @@ use File::Spec;
 
 require_ok('URI::PackageURL');
 
-my $purl_tests_dir = File::Spec->catdir('t', 'official-tests');
+my $purl_tests_dir = File::Spec->catdir('t', 'tests');
 
-BAIL_OUT('"official-tests" directory not found') if (!-d $purl_tests_dir);
+BAIL_OUT('"tests" directory not found') if (!-d $purl_tests_dir);
 
-opendir(my $dh, $purl_tests_dir) or Carp::croak "Can't open directory: $!";
 
-while (my $file = readdir $dh) {
+foreach my $test_file (find($purl_tests_dir)) {
 
-    next if ($file eq '.' or $file eq '..');
-    next unless ($file =~ /(specification|cpan)/);
-
-    my $test_file = File::Spec->catfile('t', 'official-tests', $file);
+    next unless ($test_file =~ /(specification|cpan)/);
 
     subtest $test_file => sub {
         execute_test($test_file);
@@ -25,7 +21,11 @@ while (my $file = readdir $dh) {
 
 }
 
-closedir $dh;
+sub find {
+    my $directory = shift;
+    opendir my $dh, $directory or Carp::croak "Cant'open directory: $!";
+    return map { $_, -d $_ ? find($_) : () } map { /\A\.\.?\z/ ? () : File::Spec->catfile($directory, $_) } readdir $dh;
+}
 
 sub execute_test {
 
