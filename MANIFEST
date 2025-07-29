@@ -23,12 +23,13 @@ t/30-util.t
 t/40-cli.t
 t/50-version-range.t
 t/90-cpan-distname-info.t
-t/99-official-purl-test-suite.t
-t/99-official-purl-tests.t
+t/99-purl-legacy-test-suite.t
+t/99-purl-tests.t
 t/manifest.t
-t/official-tests/specification-test.json
 t/pod-coverage.t
 t/pod.t
-t/sync-purl-test-suite-data.sh
+t/sync-purl-legacy-test-suite-data.sh
 t/sync-purl-tests.sh
 t/test-suite-data.json
+t/tests/spec/specification-test.json
+t/tests/types/cpan-test.json
