@@ -15,7 +15,6 @@ sub purl_components_normalize {
     my (%component) = @_;
 
     my %TYPES = (
-        conan       => \&_conan_normalize,
         cpan        => \&_cpan_normalize,
         cran        => \&_cran_normalize,
         huggingface => \&_huggingface_normalize,
@@ -46,27 +45,6 @@ sub purl_components_normalize {
 
     if (defined $TYPES{$component{type}}) {
         return $TYPES{$component{type}}->(%component);
-    }
-
-    return \%component;
-
-}
-
-sub _conan_normalize {
-
-    my (%component) = @_;
-
-    if (defined $component{namespace} && $component{namespace} ne '') {
-        if (!defined $component{qualifiers}->{channel}) {
-            Carp::croak
-                "Invalid Package URL: Conan 'channel' qualifier does not exist for namespace '$component{namespace}'";
-        }
-    }
-    else {
-        if (defined $component{qualifiers}->{channel}) {
-            Carp::croak
-                "Invalid Package URL: Conan 'namespace' does not exist for channel '$component{qualifiers}->{channel}'";
-        }
     }
 
     return \%component;
