@@ -26,7 +26,6 @@ sub test_purl_encode {
     };
 
     local $TODO = 'SKIP test because in ENCODE always generate well format PURL string' if ($test->{purl} =~ /pkg%3A/);
-    local $TODO = 'SKIP the outdated Conan tests (see package-url/purl-spec#168)' if ($test->{purl} =~ /pkg\:conan/);
 
     if ($test->{is_invalid}) {
         like($@, qr/Invalid Package URL/i, "ENCODE: $test_name");
@@ -55,8 +54,6 @@ sub test_purl_decode {
 
     my $purl_string = $test->{$purl_string_field};
     my $test_name   = $test->{description};
-
-    local $TODO = 'SKIP the outdated Conan tests (see package-url/purl-spec#168)' if ($purl_string =~ /pkg\:conan/);
 
     my $purl = eval { URI::PackageURL->from_string($purl_string) };
 
