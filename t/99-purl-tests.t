@@ -10,10 +10,21 @@ my $purl_tests_dir = File::Spec->catdir('t', 'tests');
 
 BAIL_OUT('"tests" directory not found') if (!-d $purl_tests_dir);
 
+$ENV{PURL_LEGACY_CPAN_TYPE} = 1;
 
 foreach my $test_file (find($purl_tests_dir)) {
 
-    next unless ($test_file =~ /(specification|cpan)/);
+    next if ($test_file =~ /cocoapods/);    # percent encoding
+    next if ($test_file =~ /conan/);        # qualifiers order
+    next if ($test_file =~ /generic/);      # qualifiers order
+    next if ($test_file =~ /maven/);        # qualifiers order
+    next if ($test_file =~ /mlflow/);       # qualifiers order
+    next if ($test_file =~ /npm/);          # percent encoding
+    next if ($test_file =~ /oci/);          # percent encoding + qualifiers order
+    next if ($test_file =~ /rpm/);          # qualifiers order
+    next if ($test_file =~ /swid/);         # percent encoding
+
+    diag $test_file;
 
     subtest $test_file => sub {
         execute_test($test_file);
@@ -22,9 +33,15 @@ foreach my $test_file (find($purl_tests_dir)) {
 }
 
 sub find {
+
     my $directory = shift;
-    opendir my $dh, $directory or Carp::croak "Cant'open directory: $!";
-    return map { $_, -d $_ ? find($_) : () } map { /\A\.\.?\z/ ? () : File::Spec->catfile($directory, $_) } readdir $dh;
+
+    opendir my $dh, $directory or Carp::croak "Can't open directory: $!";
+
+    return
+        map { -f $_ ? $_ : () }
+        map { $_, -d $_ ? find($_) : () } map { /\A\.\.?\z/ ? () : File::Spec->catfile($directory, $_) } readdir $dh;
+
 }
 
 sub execute_test {
@@ -34,7 +51,9 @@ sub execute_test {
     open my $fh, '<', $test_file or Carp::croak "Can't open file: $!";
 
     my $test_content = do { local $/; <$fh> };
-    my $test_data    = JSON::PP::decode_json($test_content);
+    my $test_data    = eval { JSON::PP::decode_json($test_content) };
+
+    BAIL_OUT("$test_file - $@") if $@;
 
     foreach my $test (@{$test_data->{tests}}) {
 
@@ -57,9 +76,6 @@ sub execute_build_test {
     my $test_description = $test->{description};
 
     my $purl = eval { URI::PackageURL->new(%{$test->{input}}); };
-
-    local $TODO = 'DUBIOUS MAVEN TEST' if $test_description =~ /invalid encoded colon : between scheme and type/i;
-    local $TODO = 'DUBIOUS CONAN TEST' if $@ =~ /Conan 'channel' qualifier does not exist for namespace/i;
 
     if ($test->{expected_failure}) {
         like($@, qr/Invalid Package URL/i, "ENCODE: $test_description");
@@ -85,9 +101,6 @@ sub execute_parse_test {
     diag $purl_string;
 
     my $purl = eval { URI::PackageURL->from_string($purl_string) };
-
-    local $TODO = 'DUBIOUS NPM TEST'   if $purl_string =~ /pkg\:npm\/@/;
-    local $TODO = 'DUBIOUS CONAN TEST' if $@           =~ /Conan 'channel' qualifier does not exist for namespace/i;
 
     if ($test->{expected_failure}) {
         like($@, qr/(Invalid|Malformed) Package URL/i, "DECODE $purl_string: $test_description");
