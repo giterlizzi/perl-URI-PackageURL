@@ -1,5 +1,9 @@
 Change history for URI-PackageURL
 
+2.?? 2025-??-??
+    - Added PURL tests from https://github.com/package-url/purl-spec
+    - Added VERS tests from https://github.com/package-url/vers-spec
+
 2.23 2025-07-11
     - Updated CPAN PURL type spec
     - Added PURL_LEGACY_CPAN_TYPE env

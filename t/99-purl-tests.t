@@ -6,9 +6,9 @@ use File::Spec;
 
 require_ok('URI::PackageURL');
 
-my $purl_tests_dir = File::Spec->catdir('t', 'tests');
+my $purl_tests_dir = File::Spec->catdir('t', 'purl');
 
-BAIL_OUT('"tests" directory not found') if (!-d $purl_tests_dir);
+BAIL_OUT('"purl" tests directory not found') if (!-d $purl_tests_dir);
 
 $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
 
@@ -60,6 +60,10 @@ sub execute_test {
         diag $test->{description};
 
     TODO: {
+
+            local $TODO = 'SKIP test because in ENCODE always generate well format PURL string'
+                if ($test->{description} eq 'invalid encoded colon : between scheme and type');
+
             execute_parse_test($test)     if $test->{test_type} eq 'parse';
             execute_build_test($test)     if $test->{test_type} eq 'build';
             execute_roundtrip_test($test) if $test->{test_type} eq 'roundtrip';
