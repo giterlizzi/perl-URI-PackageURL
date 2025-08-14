@@ -47,7 +47,7 @@ sub execute_test {
 
     foreach my $test (@{$test_data->{tests}}) {
 
-        diag $test->{description};
+        diag sprintf '[%s] %s', $test->{test_group}, $test->{description};
 
         local $TODO = 'SKIP test because URI::VersionRange fail in sorting in "to_string"'
             if ($test->{test_type} eq 'roundtrip');

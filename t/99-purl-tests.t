@@ -14,12 +14,13 @@ $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
 
 foreach my $test_file (find($purl_tests_dir)) {
 
+    # Skip some tests for PRs and issues in purl-spec that are still open
+
     next if ($test_file =~ /cocoapods/);    # percent encoding
     next if ($test_file =~ /conan/);        # qualifiers order
     next if ($test_file =~ /generic/);      # qualifiers order
     next if ($test_file =~ /maven/);        # qualifiers order
     next if ($test_file =~ /mlflow/);       # qualifiers order
-    next if ($test_file =~ /npm/);          # percent encoding
     next if ($test_file =~ /oci/);          # percent encoding + qualifiers order
     next if ($test_file =~ /rpm/);          # qualifiers order
     next if ($test_file =~ /swid/);         # percent encoding
@@ -57,7 +58,7 @@ sub execute_test {
 
     foreach my $test (@{$test_data->{tests}}) {
 
-        diag $test->{description};
+        diag sprintf '[%s] %s', $test->{test_group}, $test->{description};
 
     TODO: {
 

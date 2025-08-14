@@ -13,7 +13,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.23_1';
+our $VERSION = '2.23_3';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:[A-Za-z\\.\\-\\+][A-Za-z0-9\\.\\-\\+]*/.+};
@@ -100,6 +100,7 @@ sub from_string {
         $components{subpath} = join '/', @subpath;
     }
 
+
     # Split the remainder once from right on '?'
     #     The left side is the remainder
     #     The right side is the qualifiers string
@@ -165,6 +166,14 @@ sub from_string {
     #     This is the version
 
     my @s5 = split(/@([^@]+)$/, $s4[1]);
+
+    # NPM purl MAY have a namespace starting with "@"
+    # so we need to handle this case separately
+
+    if ($components{type} eq 'npm' and $s4[1] =~ /^@/ and $s4[1] !~ /@.*@/) {
+        @s5 = ($s4[1]);
+    }
+
     $components{version} = _url_decode($s5[1]) if ($s5[1]);
 
 
@@ -190,6 +199,7 @@ sub from_string {
     if (@s6) {
         $components{namespace} = join '/', map { _url_decode($_) } @s6;
     }
+
 
     if (DEBUG) {
         say STDERR "-- S1: @s1";
