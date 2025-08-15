@@ -15,15 +15,14 @@ VERS_ARCHIVE_FILE=$(mktemp)
 rm -rf $CWD/{purl,vers}/*
 
 mkdir -p $CWD/{purl,vers}
-mkdir -p $CWD/purl/{spec,types}
 
 # PURL tests
 wget -O $PURL_ARCHIVE_FILE $PURL_ARCHIVE_URL
-unzip -j $PURL_ARCHIVE_FILE 'purl-spec-main/tests/spec/*'  -d $CWD/purl/tests/spec
-unzip -j $PURL_ARCHIVE_FILE 'purl-spec-main/tests/types/*' -d $CWD/purl/tests/types
+unzip -j $PURL_ARCHIVE_FILE 'purl-spec-main/tests/spec/*'  -d $CWD/purl/spec
+unzip -j $PURL_ARCHIVE_FILE 'purl-spec-main/tests/types/*' -d $CWD/purl/types
 rm $PURL_ARCHIVE_FILE
 
 # VERS tests
 wget -O $VERS_ARCHIVE_FILE $VERS_ARCHIVE_URL
-unzip -j $VERS_ARCHIVE_FILE 'vers-spec-main/tests/*'  -d $CWD/vers/tests
+unzip -j $VERS_ARCHIVE_FILE 'vers-spec-main/tests/*'  -d $CWD/vers
 rm $VERS_ARCHIVE_FILE
