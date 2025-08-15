@@ -14,13 +14,15 @@ $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
 
 foreach my $test_file (find($purl_tests_dir)) {
 
-    # Skip some tests for PRs and issues in purl-spec that are still open
+    # (!) Skip some tests for PRs and issues in purl-spec that are still open
 
+    #                      PURL TYPE          ISSUE
     next if ($test_file =~ /cocoapods/);    # percent encoding
     next if ($test_file =~ /conan/);        # qualifiers order
     next if ($test_file =~ /generic/);      # qualifiers order
     next if ($test_file =~ /maven/);        # qualifiers order
     next if ($test_file =~ /mlflow/);       # qualifiers order
+    next if ($test_file =~ /npm/);          # percent encoding
     next if ($test_file =~ /oci/);          # percent encoding + qualifiers order
     next if ($test_file =~ /rpm/);          # qualifiers order
     next if ($test_file =~ /swid/);         # percent encoding
@@ -83,7 +85,7 @@ sub execute_build_test {
     my $purl = eval { URI::PackageURL->new(%{$test->{input}}); };
 
     if ($test->{expected_failure}) {
-        like($@, qr/Invalid Package URL/i, "ENCODE: $test_description");
+        like($@, qr/Invalid PURL/i, "ENCODE: $test_description");
         return;
     }
 
@@ -108,7 +110,7 @@ sub execute_parse_test {
     my $purl = eval { URI::PackageURL->from_string($purl_string) };
 
     if ($test->{expected_failure}) {
-        like($@, qr/(Invalid|Malformed) Package URL/i, "DECODE $purl_string: $test_description");
+        like($@, qr/(Invalid|Malformed) PURL/i, "DECODE $purl_string: $test_description");
         return;
     }
 

@@ -1,8 +1,9 @@
 Change history for URI-PackageURL
 
 2.?? 2025-??-??
-    - Added PURL tests from https://github.com/package-url/purl-spec
-    - Added VERS tests from https://github.com/package-url/vers-spec
+    - Added PURL tests from https://github.com/package-url/purl-spec (package-url/purl-spec#514)
+    - Added VERS tests from https://github.com/package-url/vers-spec (package-url/vers-spec#28)
+    - Improved 'name' and 'namespace' parsing (package-url/purl-spec#582 - package-url/purl-spec#583)
     - FIX NPM PURL string parser
 
 2.23 2025-07-11

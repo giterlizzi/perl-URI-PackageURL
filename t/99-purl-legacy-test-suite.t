@@ -28,7 +28,7 @@ sub test_purl_encode {
     local $TODO = 'SKIP test because in ENCODE always generate well format PURL string' if ($test->{purl} =~ /pkg%3A/);
 
     if ($test->{is_invalid}) {
-        like($@, qr/Invalid Package URL/i, "ENCODE: $test_name");
+        like($@, qr/Invalid PURL/i, "ENCODE: $test_name");
         return;
     }
 
@@ -58,12 +58,12 @@ sub test_purl_decode {
     my $purl = eval { URI::PackageURL->from_string($purl_string) };
 
     if ($test->{is_invalid}) {
-        like($@, qr/(Invalid|Malformed) Package URL/i, "DECODE $purl_string_field: $test_name");
+        like($@, qr/(Invalid|Malformed) PURL/i, "DECODE $purl_string_field: $test_name");
         return;
     }
 
     if (!$test->{is_invalid} && $@) {
-        fail("DECODE: $test_name");
+        fail("DECODE: $test_name --> $purl_string");
         return;
     }
 

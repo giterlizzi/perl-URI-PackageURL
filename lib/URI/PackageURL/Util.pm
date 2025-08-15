@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.23_2';
+our $VERSION = '2.23_4';
 our @EXPORT  = qw(purl_to_urls purl_components_normalize);
 
 sub purl_components_normalize {
@@ -25,7 +25,7 @@ sub purl_components_normalize {
         swift       => \&_swift_normalize,
     );
 
-    Carp::croak "Invalid Package URL: '$component{scheme}' is not a valid scheme" unless ($component{scheme} eq 'pkg');
+    Carp::croak "Invalid PURL: '$component{scheme}' is not a valid scheme" unless ($component{scheme} eq 'pkg');
 
     $component{type} = lc $component{type};
 
@@ -40,8 +40,8 @@ sub purl_components_normalize {
     }
 
     foreach my $qualifier (keys %{$component{qualifiers}}) {
-        Carp::croak "Invalid Package URL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /\s/);
-        Carp::croak "Invalid Package URL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /\%/);
+        Carp::croak "Invalid PURL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /\s/);
+        Carp::croak "Invalid PURL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /\%/);
     }
 
     if (defined $TYPES{$component{type}}) {
@@ -57,11 +57,11 @@ sub _conan_normalize {
     my (%component) = @_;
 
     if (defined $component{namespace} && !defined $component{qualifiers}->{channel}) {
-        Carp::croak "Invalid Package URL: Conan without 'channel' qualifier";
+        Carp::croak "Invalid PURL: Conan without 'channel' qualifier";
     }
 
     if (!defined $component{namespace} && defined $component{qualifiers}->{channel}) {
-        Carp::croak "Invalid Package URL: Conan 'channel' qualifier without 'namespace'";
+        Carp::croak "Invalid PURL: Conan 'channel' qualifier without 'namespace'";
     }
 
     return \%component;
@@ -78,15 +78,15 @@ sub _cpan_normalize {
         $component{namespace} = uc $component{namespace} if (defined $component{namespace});
 
         if ((defined $component{namespace} && defined $component{name}) && $component{namespace} =~ /\:/) {
-            Carp::croak "Invalid Package URL: CPAN 'namespace' component must have the distribution author";
+            Carp::croak "Invalid PURL: CPAN 'namespace' component must have the distribution author";
         }
 
         if ((defined $component{namespace} && defined $component{name}) && $component{name} =~ /\:/) {
-            Carp::croak "Invalid Package URL: CPAN 'name' component must have the distribution name";
+            Carp::croak "Invalid PURL: CPAN 'name' component must have the distribution name";
         }
 
         if (!defined $component{namespace} && $component{name} =~ /\-/) {
-            Carp::croak "Invalid Package URL: CPAN 'name' component must have the module name";
+            Carp::croak "Invalid PURL: CPAN 'name' component must have the module name";
         }
 
         return \%component;
@@ -97,13 +97,13 @@ sub _cpan_normalize {
 
     unless (defined($component{namespace})) {
         Carp::croak
-            "Invalid Package URL: The CPAN 'namespace' is required and must contain the CPAN ID of the author/publisher";
+            "Invalid PURL: The CPAN 'namespace' is required and must contain the CPAN ID of the author/publisher";
     }
 
     $component{namespace} = uc $component{namespace};
 
     if ($component{name} =~ /\:/) {
-        Carp::croak "Invalid Package URL: The CPAN 'name' component must have the distribution name";
+        Carp::croak "Invalid PURL: The CPAN 'name' component must have the distribution name";
     }
 
     return \%component;
@@ -114,7 +114,7 @@ sub _cran_normalize {
 
     my (%component) = @_;
 
-    Carp::croak "Invalid Package URL: Cran 'version' is required" unless defined $component{version};
+    Carp::croak "Invalid PURL: Cran 'version' is required" unless defined $component{version};
 
     return \%component;
 
@@ -165,8 +165,7 @@ sub _swid_normalize {
 
     my (%component) = @_;
 
-    Carp::croak "Invalid Package URL: swid 'tag_id' qualifier is required"
-        unless defined $component{qualifiers}->{tag_id};
+    Carp::croak "Invalid PURL: swid 'tag_id' qualifier is required" unless defined $component{qualifiers}->{tag_id};
 
     return \%component;
 
@@ -176,8 +175,11 @@ sub _swift_normalize {
 
     my (%component) = @_;
 
-    Carp::croak "Invalid Package URL: Swift 'version' is required"   unless defined $component{version};
-    Carp::croak "Invalid Package URL: Swift 'namespace' is required" unless defined $component{namespace};
+    Carp::croak "Invalid PURL: Swift 'version' is required"   unless defined $component{version};
+    Carp::croak "Invalid PURL: Swift 'namespace' is required" unless defined $component{namespace};
+
+    my ($source, $user_org) = split '/', $component{namespace};
+    Carp::croak "Invalid PURL: Swift user/organization is required in 'namespace'" unless $user_org;
 
     return \%component;
 
