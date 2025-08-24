@@ -5,20 +5,29 @@ use strict;
 use warnings;
 use utf8;
 
-use Getopt::Long qw(GetOptionsFromArray :config gnu_compat);
-use Pod::Usage   qw(pod2usage);
 use Carp         ();
-use JSON::PP     ();
 use Data::Dumper ();
+use Getopt::Long qw(GetOptionsFromArray :config gnu_compat);
+use JSON::PP     ();
+use Pod::Text    ();
+use Pod::Usage   qw(pod2usage);
 
 use URI::PackageURL ();
 
-our $VERSION = '2.23_1';
+our $VERSION = '2.23_4';
 
 sub cli_error {
     my ($error) = @_;
     $error =~ s/ at .* line \d+.*//;
-    print STDERR "ERROR: $error\n";
+    say STDERR "ERROR: $error";
+}
+
+sub print_stdout {
+    say STDOUT $_[0] if $_[1];
+}
+
+sub print_stderr {
+    say STDERR $_[0] if $_[1];
 }
 
 sub run {
@@ -35,6 +44,10 @@ sub run {
 
             download-url
             repository-url
+
+            validate
+            quiet|q
+            info=s
 
             type=s
             namespace=s
@@ -76,6 +89,10 @@ VERSION
 
     }
 
+    if (defined $options{info}) {
+        return definition_help($options{info});
+    }
+
     if (defined $options{type}) {
 
         my $purl = eval {
@@ -94,7 +111,7 @@ VERSION
             return 1;
         }
 
-        print "$purl\n";
+        print "$purl" . (defined $options{null} ? "\0" : "\n");
         return 0;
 
     }
@@ -109,6 +126,16 @@ VERSION
     $options{format} = 'env'    if defined $options{env};
 
     my $purl = eval { URI::PackageURL->from_string($purl_string) };
+
+    if ($options{validate}) {
+
+        unless ($options{quiet}) {
+            say STDERR $purl ? 'true' : 'false';
+        }
+
+        return $purl ? 0 : 1;
+
+    }
 
     if ($@) {
         cli_error($@);
@@ -140,18 +167,18 @@ VERSION
     }
 
     if ($options{format} eq 'dumper') {
-        print Data::Dumper->new([$purl])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump;
+        print Data::Dumper->new([$purl->to_hash])->Indent(1)->Sortkeys(1)->Terse(1)->Useqq(1)->Dump;
         return 0;
     }
 
     if ($options{format} eq 'yaml') {
 
         if (eval { require YAML::XS }) {
-            print YAML::XS::Dump($purl);
+            print YAML::XS::Dump($purl->to_hash);
             return 0;
         }
         if (eval { require YAML }) {
-            print YAML::Dump($purl);
+            print YAML::Dump($purl->to_hash);
             return 0;
         }
 
@@ -204,6 +231,176 @@ VERSION
 
 }
 
+sub definition_help {
+
+    my $type = shift;
+
+    my $purl_type = URI::PackageURL::Type->new($type);
+
+    my $definition = $purl_type->definition;
+
+    unless ($definition) {
+        say "No known PURL type definition for '$type'";
+        exit 1;
+    }
+
+    my $purl_syntax_tmpl = 'pkg:%s%s/E<lt>nameE<gt>@E<lt>versionE<gt>?E<lt>qualifiersE<gt>#E<lt>subpathE<gt>';
+
+    my $purl_syntax = sprintf $purl_syntax_tmpl, $definition->{type}, '';
+
+    if (my $ns_definition = $definition->{namespace_definition}) {
+        if (defined $ns_definition->{requirement} && $ns_definition->{requirement} =~ /(required|optional)/) {
+            $purl_syntax = sprintf $purl_syntax_tmpl, $definition->{type}, '/E<lt>namespaceE<gt>';
+        }
+    }
+
+    my $man = <<EOF;
+=head1 NAME
+
+$definition->{type} - $definition->{type_name}
+
+=head1 DESCRIPTION
+
+$definition->{description}
+
+=head1 SYNTAX
+
+The structure of a PURL for this package type is:
+
+C<$purl_syntax>
+
+EOF
+
+    foreach my $component (qw[namespace name version subpath]) {
+
+        next unless defined $definition->{"${component}_definition"};
+
+        my $component_def = $definition->{"${component}_definition"};
+
+        $man .= sprintf "=head2 %s\n\n", ucfirst $component;
+        $man .= "=over\n\n";
+
+        if ($component_def->{requirement}) {
+            $man .= sprintf "=item B<Requirement>: %s\n\n", ucfirst($component_def->{requirement});
+        }
+
+        if ($component_def->{permitted_characters}) {
+            $man .= sprintf "=item B<Permitted Characters>: %s\n\n", ucfirst($component_def->{permitted_characters});
+        }
+
+        if ($component_def->{case_sensitive}) {
+            $man .= sprintf "=item B<Permitted Characters>: %s\n\n", ($component_def->{case_sensitive} ? 'Yes' : 'No');
+        }
+
+        if ($component_def->{normalization_rules}) {
+            $man .= "=item B<Normalization Rules>:\n\n";
+            $man .= "=over\n\n";
+
+            foreach (@{$component_def->{normalization_rules}}) {
+                $man .= sprintf "=item * %s\n\n", $_;
+            }
+
+            $man .= "=back\n\n";
+        }
+
+        if ($component_def->{native_name}) {
+            $man .= sprintf "=item B<Native Label>: %s\n\n", $component_def->{native_name};
+        }
+
+        $man .= "=back\n\n";
+
+        if (my $note = $component_def->{note}) {
+            $man .= sprintf "%s\n\n", $note;
+        }
+    }
+
+    if (my $qualifiers_def = $definition->{qualifiers_definition}) {
+
+        $man .= "=head2 Qualifiers\n\n";
+        $man .= "=over\n\n";
+
+        foreach my $qualifier_def (@{$qualifiers_def}) {
+
+            $man .= sprintf "=item C<%s>\n\n", $qualifier_def->{key};
+
+            if (my $requirement = $qualifier_def->{requirement}) {
+                $man .= sprintf "Requirement: %s\n\n", ucfirst($requirement);
+            }
+
+            if (my $native_name = $qualifier_def->{native_name}) {
+                $man .= sprintf "Native name: %s\n\n", $native_name;
+            }
+
+            if (my $default_value = $qualifier_def->{default_value}) {
+                $man .= sprintf "Default value: %s\n\n", $default_value;
+            }
+
+            $man .= sprintf "%s\n\n", $qualifier_def->{description};
+
+        }
+
+        $man .= "=back\n\n";
+
+    }
+
+    if (my $repository_def = $definition->{repository}) {
+
+        my $use_repository         = $repository_def->{use_repository} ? 'Yes' : 'No';
+        my $default_repository_url = $repository_def->{default_repository_url};
+
+        $man .= "=head1 REPOSITORY\n\n";
+        $man .= "=over\n\n";
+        $man .= sprintf "=item B<Use repository>: %s\n\n", $repository_def->{use_repository} ? 'Yes' : 'No';
+        $man .= sprintf "=item B<Default repository URL>: %s\n\n",
+            $repository_def->{default_repository_url} || '(none)';
+        $man .= "=back\n\n";
+
+        if (my $note = $repository_def->{note}) {
+            $man .= sprintf "%s\n\n", $note;
+        }
+
+    }
+
+    if ($definition->{examples}) {
+
+        $man .= "=head1 EXAMPLES\n\n";
+        $man .= "=over\n\n";
+
+        foreach (@{$definition->{examples}}) {
+            $man .= sprintf "=item * %s\n\n", $_;
+        }
+
+        $man .= "=back\n\n";
+
+    }
+
+    if ($definition->{note}) {
+        $man .= "=head1 NOTES\n\n";
+        $man .= sprintf "%s\n\n", $definition->{note};
+    }
+
+    $man .= "=head1 REFERENCES\n\n";
+    $man .= "=over\n\n";
+
+    $man .= sprintf "=item * %s schema ID, L<%s>\n\n", $definition->{type_name}, $definition->{'$id'};
+
+    foreach (@{$definition->{reference_urls}}) {
+        $man .= sprintf "=item * %s reference, L<%s>\n\n", $definition->{type_name}, $_;
+    }
+
+    $man .= "=item * PURL specification, L<https://github.com/package-url/purl-spec>\n\n";
+    $man .= "=item * VERS specification, L<https://github.com/package-url/vers-spec>\n\n";
+
+    $man .= "=back\n\n";
+
+
+    my $parser = Pod::Text->new;
+    $parser->parse_string_document($man, \my $output);
+
+    exit;
+
+}
+
 1;
 
 __END__
@@ -212,7 +409,7 @@ __END__
 
 =head1 NAME
 
-URI::PackageURL::App - URI::PackageURL (purl) Command Line Interface
+URI::PackageURL::App - URI::PackageURL (PURL) Command Line Interface
 
 =head1 SYNOPSIS
 
