@@ -5,186 +5,15 @@ use strict;
 use utf8;
 use warnings;
 
+use File::Basename        qw(dirname);
+use File::Spec::Functions qw(catfile);
+
 use Exporter qw(import);
 
 our $VERSION = '2.23_4';
-our @EXPORT  = qw(purl_to_urls purl_components_normalize);
+our @EXPORT  = qw(resources_path purl_to_urls);
 
-sub purl_components_normalize {
-
-    my (%component) = @_;
-
-    my %TYPES = (
-        conan       => \&_conan_normalize,
-        cpan        => \&_cpan_normalize,
-        cran        => \&_cran_normalize,
-        huggingface => \&_huggingface_normalize,
-        mlflow      => \&_mlflow_normalize,
-        pypi        => \&_pypi_normalize,
-        swid        => \&_swid_normalize,
-        swift       => \&_swift_normalize,
-    );
-
-    Carp::croak "Invalid PURL: '$component{scheme}' is not a valid scheme" unless ($component{scheme} eq 'pkg');
-
-    $component{type} = lc $component{type};
-
-    if (grep { $_ eq $component{type} } qw(alpm apk bitbucket composer deb github gitlab hex npm oci pypi)) {
-        $component{name} = lc $component{name};
-    }
-
-    if (defined $component{namespace}) {
-        if (grep { $_ eq $component{type} } qw(alpm apk bitbucket composer deb github gitlab golang hex rpm)) {
-            $component{namespace} = lc $component{namespace};
-        }
-    }
-
-    foreach my $qualifier (keys %{$component{qualifiers}}) {
-        Carp::croak "Invalid PURL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /\s/);
-        Carp::croak "Invalid PURL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /\%/);
-    }
-
-    if (defined $TYPES{$component{type}}) {
-        return $TYPES{$component{type}}->(%component);
-    }
-
-    return \%component;
-
-}
-
-sub _conan_normalize {
-
-    my (%component) = @_;
-
-    if (defined $component{namespace} && !defined $component{qualifiers}->{channel}) {
-        Carp::croak "Invalid PURL: Conan without 'channel' qualifier";
-    }
-
-    if (!defined $component{namespace} && defined $component{qualifiers}->{channel}) {
-        Carp::croak "Invalid PURL: Conan 'channel' qualifier without 'namespace'";
-    }
-
-    return \%component;
-
-}
-
-sub _cpan_normalize {
-
-    my (%component) = @_;
-
-    # Use legacy CPAN PURL type SPEC
-    if ($ENV{PURL_LEGACY_CPAN_TYPE}) {
-
-        $component{namespace} = uc $component{namespace} if (defined $component{namespace});
-
-        if ((defined $component{namespace} && defined $component{name}) && $component{namespace} =~ /\:/) {
-            Carp::croak "Invalid PURL: CPAN 'namespace' component must have the distribution author";
-        }
-
-        if ((defined $component{namespace} && defined $component{name}) && $component{name} =~ /\:/) {
-            Carp::croak "Invalid PURL: CPAN 'name' component must have the distribution name";
-        }
-
-        if (!defined $component{namespace} && $component{name} =~ /\-/) {
-            Carp::croak "Invalid PURL: CPAN 'name' component must have the module name";
-        }
-
-        return \%component;
-
-    }
-
-    # The namespace is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
-
-    unless (defined($component{namespace})) {
-        Carp::croak
-            "Invalid PURL: The CPAN 'namespace' is required and must contain the CPAN ID of the author/publisher";
-    }
-
-    $component{namespace} = uc $component{namespace};
-
-    if ($component{name} =~ /\:/) {
-        Carp::croak "Invalid PURL: The CPAN 'name' component must have the distribution name";
-    }
-
-    return \%component;
-
-}
-
-sub _cran_normalize {
-
-    my (%component) = @_;
-
-    Carp::croak "Invalid PURL: Cran 'version' is required" unless defined $component{version};
-
-    return \%component;
-
-}
-
-sub _huggingface_normalize {
-
-    my (%component) = @_;
-
-    # The version is the model revision Git commit hash. It is case insensitive and
-    # must be lowercased in the package URL.
-    $component{version} = lc $component{version};
-
-    return \%component;
-
-}
-
-sub _mlflow_normalize {
-
-    my (%component) = @_;
-
-    # The "name" case sensitivity depends on the server implementation:
-    #   - Azure ML: it is case sensitive and must be kept as-is in the package URL.
-    #   - Databricks: it is case insensitive and must be lowercased in the package URL.
-
-    if (defined $component{qualifiers}->{repository_url}
-        && $component{qualifiers}->{repository_url} =~ /azuredatabricks/)
-    {
-        $component{name} = lc $component{name};
-    }
-
-    return \%component;
-
-}
-
-sub _pypi_normalize {
-
-    my (%component) = @_;
-
-    # A PyPI package name must be lowercased and underscore "_" replaced with a dash "-".
-    $component{name} =~ s/_/-/g;
-
-    return \%component;
-
-}
-
-sub _swid_normalize {
-
-    my (%component) = @_;
-
-    Carp::croak "Invalid PURL: swid 'tag_id' qualifier is required" unless defined $component{qualifiers}->{tag_id};
-
-    return \%component;
-
-}
-
-sub _swift_normalize {
-
-    my (%component) = @_;
-
-    Carp::croak "Invalid PURL: Swift 'version' is required"   unless defined $component{version};
-    Carp::croak "Invalid PURL: Swift 'namespace' is required" unless defined $component{namespace};
-
-    my ($source, $user_org) = split '/', $component{namespace};
-    Carp::croak "Invalid PURL: Swift user/organization is required in 'namespace'" unless $user_org;
-
-    return \%component;
-
-}
-
+sub resources_path { catfile(dirname(__FILE__), 'resources') }
 
 sub purl_to_urls {
 
@@ -589,10 +418,6 @@ URI::PackageURL::Util - Utility for URI::PackageURL
 URL::PackageURL::Util is the utility package for URL::PackageURL.
 
 =over
-
-=item %normalized_purl_components = purl_components_normalize(%purl_components)
-
-Normalize the given Package URL components
 
 =item $urls = purl_to_urls($purl_string | URI::PackageURL)
 

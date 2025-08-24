@@ -8,7 +8,8 @@ use warnings;
 use Carp     ();
 use Exporter qw(import);
 
-use URI::PackageURL::Util qw(purl_to_urls purl_components_normalize);
+use URI::PackageURL::Type;
+use URI::PackageURL::Util qw(purl_to_urls);
 
 use constant DEBUG => $ENV{PURL_DEBUG};
 
@@ -32,15 +33,21 @@ sub new {
     my $qualifiers = delete $params{qualifiers} // {};
     my $subpath    = delete $params{subpath};
 
-    return bless purl_components_normalize(
+    my $purl_type = URI::PackageURL::Type->new($type);
+
+    my %components = $purl_type->normalize(
         scheme     => $scheme,
         type       => $type,
         namespace  => $namespace,
         name       => $name,
         version    => $version,
         qualifiers => $qualifiers,
-        subpath    => $subpath
-    ), $class;
+        subpath    => $subpath,
+    );
+
+    my $self = bless \%components, $class;
+
+    return $self;
 
 }
 
@@ -265,6 +272,7 @@ sub to_string {
             $qualifiers->{checksum} = join ',', @{$qualifiers->{checksum}};
         }
 
+        # Legacy 'checksums' qualifier
         if (defined $qualifiers->{checksums} && ref $qualifiers->{checksums} eq 'ARRAY') {
             $qualifiers->{checksums} = join ',', @{$qualifiers->{checksums}};
         }
