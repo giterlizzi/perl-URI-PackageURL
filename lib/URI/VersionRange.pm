@@ -18,7 +18,7 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.23_1';
+our $VERSION = '2.23_4';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -177,8 +177,8 @@ sub constraint_contains {
 
     my $version_class = $self->{_version_class};
 
-    my $v1 = $version_class->parse($version);
-    my $v2 = $version_class->parse($constraint->version);
+    my $v1 = $version_class->new($version);
+    my $v2 = $version_class->new($constraint->version);
 
     return ($v1 == $v2) if ($constraint->comparator eq '=');
     return ($v1 != $v2) if ($constraint->comparator eq '!=');
@@ -212,7 +212,7 @@ sub contains {
 
         return TRUE
             if ((first { $constraint->comparator eq $_ } ('=', '<=', '>='))
-            && ($version_class->parse($version) == $version_class->parse($constraint->version)));
+            && ($version_class->new($version) == $version_class->new($constraint->version)));
 
         # If the "tested version" is equal to the any of the constraint version
         # where the constraint comparator is "=!" then the "tested version" is NOT
@@ -220,7 +220,7 @@ sub contains {
 
         return FALSE
             if ($constraint->comparator eq '!='
-            && ($version_class->parse($version) == $version_class->parse($constraint->version)));
+            && ($version_class->new($version) == $version_class->new($constraint->version)));
 
         # Split the constraint list in two sub lists:
         #    a first list where the comparator is "=" or "!="
@@ -262,7 +262,7 @@ sub contains {
 
             return TRUE
                 if ((first { $current_constraint->comparator eq $_ } ('<=', '<'))
-                && ($version_class->parse($version) < $version_class->parse($current_constraint->version)));
+                && ($version_class->new($version) < $version_class->new($current_constraint->version)));
 
             $is_first_iteration = FALSE;
 
@@ -275,8 +275,8 @@ sub contains {
 
         if (   (first { $current_constraint->comparator eq $_ } ('>', '>='))
             && (first { $next_constraint->comparator eq $_ } ('<', '<='))
-            && ($version_class->parse($version) > $version_class->parse($current_constraint->version))
-            && ($version_class->parse($version) < $version_class->parse($next_constraint->version)))
+            && ($version_class->new($version) > $version_class->new($current_constraint->version))
+            && ($version_class->new($version) < $version_class->new($next_constraint->version)))
         {
             return TRUE;
         }
@@ -298,7 +298,7 @@ sub contains {
 
     return TRUE
         if ((first { $next_constraint->comparator eq $_ } ('>', '>='))
-        && ($version_class->parse($version) > $version_class->parse($next_constraint->version)));
+        && ($version_class->new($version) > $version_class->new($next_constraint->version)));
 
     return FALSE;
 
@@ -375,7 +375,7 @@ that specify version intervals.
 A C<version> satisfies a version range specifier if it is contained within any
 of the intervals defined by these C<version-constraint>.
 
-L<https://github.com/package-url/purl-spec>
+L<https://github.com/package-url/vers-spec>
 
 
 =head2 FUNCTIONAL INTERFACE
