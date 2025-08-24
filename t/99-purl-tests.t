@@ -1,8 +1,8 @@
 #!perl
 
+use File::Spec;
 use JSON::PP;
 use Test::More;
-use File::Spec;
 
 require_ok('URI::PackageURL');
 
@@ -14,20 +14,17 @@ $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
 
 foreach my $test_file (find($purl_tests_dir)) {
 
+    if (my $purl_type = $ENV{PURL_TYPE}) {
+        next unless ($test_file =~ /$purl_type/);
+        diag "Test only $ENV{PURL_TYPE} testcase";
+    }
+
     # (!) Skip some tests for PRs and issues in purl-spec that are still open
 
     #                      PURL TYPE          ISSUE
-    next if ($test_file =~ /cocoapods/);    # percent encoding
-    next if ($test_file =~ /conan/);        # qualifiers order
-    next if ($test_file =~ /generic/);      # qualifiers order
-    next if ($test_file =~ /maven/);        # qualifiers order
-    next if ($test_file =~ /mlflow/);       # qualifiers order
-    next if ($test_file =~ /npm/);          # percent encoding
-    next if ($test_file =~ /oci/);          # percent encoding + qualifiers order
-    next if ($test_file =~ /rpm/);          # qualifiers order
-    next if ($test_file =~ /swid/);         # percent encoding
-
-    diag $test_file;
+    next if ($test_file =~ /conan/);          # qualifiers order and spec issue
+    next if ($test_file =~ /rpm/);            # missing namespace - test issue
+    next if ($test_file =~ /huggingface/);    # missing namespace - test issue
 
     subtest $test_file => sub {
         execute_test($test_file);
@@ -60,7 +57,7 @@ sub execute_test {
 
     foreach my $test (@{$test_data->{tests}}) {
 
-        diag sprintf '[%s] %s', $test->{test_group}, $test->{description};
+        note sprintf '%s [%s] %s', $test->{test_group}, $test->{description};
 
     TODO: {
 
@@ -105,7 +102,7 @@ sub execute_parse_test {
     my $test_description = $test->{description};
     my $purl_string      = $test->{input};
 
-    diag $purl_string;
+    note $purl_string;
 
     my $purl = eval { URI::PackageURL->from_string($purl_string) };
 
@@ -138,7 +135,7 @@ sub execute_roundtrip_test {
     my $test_description = $test->{description};
     my $purl_string      = $test->{input};
 
-    diag $purl_string;
+    note $purl_string;
 
     my $purl = eval { URI::PackageURL->from_string($purl_string) };
 

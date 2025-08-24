@@ -1,8 +1,8 @@
 #!perl
 
+use File::Spec;
 use JSON::PP;
 use Test::More;
-use File::Spec;
 
 require_ok('URI::VersionRange');
 
@@ -13,8 +13,6 @@ BAIL_OUT('"vers" tests directory not found') if (!-d $purl_tests_dir);
 foreach my $test_file (find($purl_tests_dir)) {
 
     next unless $test_file =~ /(containment|roundtrip)/;
-
-    diag $test_file;
 
     subtest $test_file => sub {
         execute_test($test_file);
@@ -47,7 +45,7 @@ sub execute_test {
 
     foreach my $test (@{$test_data->{tests}}) {
 
-        diag sprintf '[%s] %s', $test->{test_group}, $test->{description};
+        note sprintf '[%s] %s', $test->{test_group}, $test->{description};
 
         local $TODO = 'SKIP test because URI::VersionRange fail in sorting in "to_string"'
             if ($test->{test_type} eq 'roundtrip');
@@ -68,7 +66,7 @@ sub execute_containment_test {
     my $version          = $test->{input}->{version};
     my $expected_output  = $test->{expected_output};
 
-    diag "$vers_string ($version)";
+    note "$vers_string ($version)";
 
     my $vers = eval { URI::VersionRange->from_string($vers_string) };
 
@@ -85,7 +83,7 @@ sub execute_roundtrip_test {
     my $vers_string      = $test->{input}->{vers};
     my $expected_output  = $test->{expected_output};
 
-    diag $vers_string;
+    note $vers_string;
 
     my $vers = eval { URI::VersionRange->from_string($vers_string) };
 
