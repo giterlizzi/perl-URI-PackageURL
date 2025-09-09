@@ -58,6 +58,7 @@ subtest "URI::VersionRange::App - '$t2' (JSON output)" => sub {
 };
 
 
+#<<<
 my @valid = (
     'pkg:cpan/GDT/URI-PackageURL@2.23',
     'pkg:deb/debian/curl@7.50.3-1?arch=i386&distro=jessie',
@@ -69,11 +70,16 @@ my @valid = (
 );
 
 my @invalid = (
-    'EnterpriseLibrary.Common@6.0.1304', 'pkg:EnterpriseLibrary.Common@6.0.1304', 'pkg:n&g?inx/nginx@0.8.9',
-    'pkg:maven/@1.3.4', 'pkg:npm/myartifact@1.0.0?in%20production=true',          'pkg:conan/bincrafters/cctz@2.3',
-    'pkg:hackage',      'pkg%3Amaven/org.apache.commons/io'
-
+    'EnterpriseLibrary.Common@6.0.1304',
+    'pkg:EnterpriseLibrary.Common@6.0.1304',
+    'pkg:n&g?inx/nginx@0.8.9',
+    'pkg:maven/@1.3.4',
+    'pkg:npm/myartifact@1.0.0?in%20production=true',
+    'pkg:conan/bincrafters/cctz@2.3',
+    'pkg:hackage',
+    'pkg%3Amaven/org.apache.commons/io',
 );
+#>>>
 
 foreach (@valid) {
     my $res = URI::PackageURL::App->run($_, '--validate', '--quiet');

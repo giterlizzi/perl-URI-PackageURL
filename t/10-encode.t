@@ -7,7 +7,7 @@ use Test::More;
 
 use URI::PackageURL qw(encode_purl);
 
-
+#<<<
 my @TESTS = (
     {
         purl      => 'pkg:cpan/DROLSKY/DateTime@1.55',
@@ -16,7 +16,12 @@ my @TESTS = (
         name      => 'DateTime',
         version   => '1.55'
     },
-    {purl => 'pkg:cpan/GDT/URI-PackageURL', type => 'cpan', namespace => 'GDT', name => 'URI-PackageURL'},
+    {
+        purl      => 'pkg:cpan/GDT/URI-PackageURL',
+        type      => 'cpan',
+        namespace => 'GDT',
+        name      => 'URI-PackageURL'
+    },
     {
         purl      => 'pkg:cpan/OALDERS/libwww-perl@6.76',
         type      => 'cpan',
@@ -33,8 +38,14 @@ my @TESTS = (
         qualifiers => {'repository_url' => 'https://example.com/100%25/'},
         subpath    => '100%',
     },
-    {purl => 'pkg:brew/openssl%401.1@1.1.1w', type => 'brew', name => 'openssl@1.1', version => '1.1.1w'},
+    {
+        purl    => 'pkg:brew/openssl%401.1@1.1.1w',
+        type    => 'brew',
+        name    => 'openssl@1.1',
+        version => '1.1.1w'
+    },
 );
+#>>>
 
 
 foreach my $test (@TESTS) {

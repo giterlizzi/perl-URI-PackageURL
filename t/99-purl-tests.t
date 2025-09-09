@@ -22,14 +22,18 @@ foreach my $test_file (find($purl_tests_dir)) {
     # (!) Skip some tests for PRs and issues in purl-spec that are still open
 
     #                      PURL TYPE          ISSUE
-    next if ($test_file =~ /conan/);          # qualifiers order and spec issue
-    next if ($test_file =~ /rpm/);            # missing namespace - test issue
+    next if ($test_file =~ /conan/);          # spec and tests issues
+    next if ($test_file =~ /rpm/);            # missing namespace in tests (purl-spec#639 - purl-spec#660 PR)
     next if ($test_file =~ /huggingface/);    # missing namespace - test issue
 
-    subtest $test_file => sub {
-        execute_test($test_file);
-    }
+    note "--- $test_file ---";
+    execute_test($test_file);
 
+}
+
+sub test_context {
+    my $test = shift;
+    return sprintf '%s [%s] %s', $test->{test_type}, $test->{test_group}, $test->{description};
 }
 
 sub find {
@@ -57,16 +61,18 @@ sub execute_test {
 
     foreach my $test (@{$test_data->{tests}}) {
 
-        note sprintf '%s [%s] %s', $test->{test_group}, $test->{description};
+        $test->{file} = $test_file;
 
     TODO: {
 
             local $TODO = 'SKIP test because in ENCODE always generate well format PURL string'
                 if ($test->{description} eq 'invalid encoded colon : between scheme and type');
 
-            execute_parse_test($test)     if $test->{test_type} eq 'parse';
-            execute_build_test($test)     if $test->{test_type} eq 'build';
-            execute_roundtrip_test($test) if $test->{test_type} eq 'roundtrip';
+            execute_parse_test($test)      if $test->{test_type} eq 'parse';
+            execute_build_test($test)      if $test->{test_type} eq 'build';
+            execute_roundtrip_test($test)  if $test->{test_type} eq 'roundtrip';
+            execute_validation_test($test) if $test->{test_type} eq 'validation';
+
         }
 
     }
@@ -77,21 +83,21 @@ sub execute_build_test {
 
     my $test = shift;
 
-    my $test_description = $test->{description};
+    my $test_context = test_context($test);
 
     my $purl = eval { URI::PackageURL->new(%{$test->{input}}); };
 
     if ($test->{expected_failure}) {
-        like($@, qr/Invalid PURL/i, "ENCODE: $test_description");
+        like($@, qr/Invalid PURL/i, $test_context);
         return;
     }
 
     if (!$test->{expected_failure} && $@) {
-        fail("DECODE: $test_description ($@)");
+        fail("$test_context ($@)");
         return;
     }
 
-    is($purl->to_string, $test->{expected_output}, "ENCODE: $test_description");
+    is($purl->to_string, $test->{expected_output}, $test_context);
 
 }
 
@@ -99,20 +105,20 @@ sub execute_parse_test {
 
     my $test = shift;
 
-    my $test_description = $test->{description};
-    my $purl_string      = $test->{input};
+    my $test_context = test_context($test);
+    my $purl_string  = $test->{input};
 
     note $purl_string;
 
-    my $purl = eval { URI::PackageURL->from_string($purl_string) };
+    my $purl = eval { URI::PackageURL->from_string($purl_string, 0) };
 
     if ($test->{expected_failure}) {
-        like($@, qr/(Invalid|Malformed) PURL/i, "DECODE $purl_string: $test_description");
+        like($@, qr/(Invalid|Malformed) PURL/i, $test_context);
         return;
     }
 
     if (!$test->{expected_failure} && $@) {
-        fail("DECODE: $test_description ($@)");
+        fail("$test_context ($@)");
         return;
     }
 
@@ -122,7 +128,7 @@ sub execute_parse_test {
         is(
             $purl->$component,
             $test->{expected_output}->{$component},
-            "DECODE: Compare '$test_description' $component component"
+            "$test_context --> Compare '$test_description' $component component"
         );
     }
 
@@ -132,19 +138,43 @@ sub execute_roundtrip_test {
 
     my $test = shift;
 
-    my $test_description = $test->{description};
-    my $purl_string      = $test->{input};
+    my $test_context = test_context($test);
+    my $purl_string  = $test->{input};
 
     note $purl_string;
 
-    my $purl = eval { URI::PackageURL->from_string($purl_string) };
+    my $purl = eval { URI::PackageURL->from_string($purl_string, 0) };
 
     if ($@) {
-        fail("DECODE: $test_description ($@)");
+        fail("$test_context ($@)");
         return;
     }
 
-    is($purl->to_string, $test->{expected_output}, "ENCODE: $test_description");
+    is($purl->to_string, $test->{expected_output}, $test_context);
+
+}
+
+sub execute_validation_test {
+
+    my $test = shift;
+
+    my $test_context = test_context($test);
+
+    my $purl = eval { URI::PackageURL->new(%{$test->{input}}); };
+
+    if (@{$test->{expected_messages}}) {
+        like($@, qr/Invalid PURL/i, $test_context);
+        diag "-- URI::PackageURL exception: $@";
+        diag "-- Expected message: $_" for @{$test->{expected_messages}};
+        return;
+    }
+
+    if (!@{$test->{expected_messages}} && $@) {
+        fail("$test_context ($@)");
+        return;
+    }
+
+    ok($purl->to_string, $test_context);
 
 }
 

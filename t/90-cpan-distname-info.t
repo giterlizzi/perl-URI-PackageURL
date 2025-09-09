@@ -25,7 +25,7 @@ while (my $file = <DATA>) {
             $qualifiers->{ext} = $d->extension;
         }
 
-        my $purl = URI::PackageURL->new(
+        my $purl_1 = URI::PackageURL->new(
             type       => 'cpan',
             namespace  => $d->cpanid,
             name       => $d->dist,
@@ -33,13 +33,13 @@ while (my $file = <DATA>) {
             qualifiers => $qualifiers
         );
 
-        ok($purl, "Conversion: $file --> $purl");
+        ok($purl_1, "Conversion: $file --> $purl_1");
 
-        my $purl2 = URI::PackageURL->from_string($purl->to_string);
+        my $purl_2 = URI::PackageURL->from_string($purl_1->to_string);
 
-        is($d->cpanid,  $purl2->namespace, 'dist(cpanid)  == purl(namespace)');
-        is($d->dist,    $purl2->name,      'dist(dist)    == purl(name)');
-        is($d->version, $purl2->version,   'dist(version) == purl(version)');
+        is($d->cpanid,  $purl_2->namespace, 'dist(cpanid)  == purl(namespace)');
+        is($d->dist,    $purl_2->name,      'dist(dist)    == purl(name)');
+        is($d->version, $purl_2->version,   'dist(version) == purl(version)');
 
     };
 
