@@ -4,29 +4,92 @@ use feature ':5.10';
 use strict;
 use utf8;
 use warnings;
-use version ();
+
+use URI::VersionRange::Util qw(generic_version_compare);
+
 use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
 
-sub new     { my $class = shift; bless [@_], $class }
-sub compare { (version->parse($_[0]->[0]) <=> version->parse($_[1]->[0])) }
+use constant DEBUG => $ENV{VERS_DEBUG};
 
-*parse = \&new;
+our $VERSION = '2.23_5';
 
+sub load {
+
+    my ($class, $scheme) = @_;
+
+    $scheme = lc $scheme;
+
+    my @CLASSES = (
+        join('::', 'URI::VersionRange::Scheme',  lc($scheme)),    # Scheme specific
+        join('::', 'URI::VersionRange::Version', lc($scheme)),    # Scheme specific (legacy naming convention)
+    );
+
+    foreach my $version_class (@CLASSES) {
+
+        if ($version_class->can('new') or eval "require $version_class; 1") {
+            DEBUG and say STDERR "-- Loaded '$version_class' class";
+            return $version_class;
+        }
+
+        DEBUG and say STDERR "-- (E) Failed to load '$version_class' class: $@" if $@;
+
+    }
+
+    return $class;
+
+}
+
+sub new { my $class = shift; bless [@_], $class }
+
+sub scheme {
+    return (split(/\:\:/, shift, 4))[3];
+}
+
+sub compare {
+    my ($left, $right) = @_;
+    return generic_version_compare($left->[0], $right->[0]);
+}
+
+# CPAN
 
 package    # hide from pause
-    URI::VersionRange::Version::cpan;
-use parent 'URI::VersionRange::Version';
+    URI::VersionRange::Scheme::cpan {
+    use parent 'URI::VersionRange::Version';
+
+    use version();
+    use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
+
+    sub compare {
+        my ($left, $right) = @_;
+        return (version->parse($left->[0]) <=> version->parse($right->[0]));
+    }
+}
+
+# PyPi
+
+package    # hide from pause
+    URI::VersionRange::Scheme::pypi {
+    use parent 'URI::VersionRange::Version';
+
+    use version();
+    use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
+
+    sub compare {
+        my ($left, $right) = @_;
+        return (version->parse($left->[0]) <=> version->parse($right->[0]));
+    }
+}
 
 1;
 
 __END__
 =head1 NAME
 
-URI::VersionRange::Version - Version comparator class
+URI::VersionRange::Version - Version scheme helper class
 
 =head1 SYNOPSIS
 
-  package URI::VersionRange::Version::generic {
+  package URI::VersionRange::Scheme::generic {
 
       use Version::libversion::XS qw(version_compare2);
 
@@ -49,9 +112,7 @@ URI::VersionRange::Version - Version comparator class
 
 =head1 DESCRIPTION
 
-This is a base class for the version comparator.
-
-NOTE: L<URI::VersionRange> provide out-of-the-box C<cpan> type comparator.
+This is a base class for the version scheme helper.
 
 
 =head2 OBJECT-ORIENTED INTERFACE
@@ -66,13 +127,17 @@ Create new B<URI::VersionRange::Version> instance using provided version C<value
 
 Compare the version
 
+=item $v->from_native( $native_range )
+
+Convert the native range of the scheme into a VERS string
+
 =back
 
-=head2 HOW TO CREATE A NEW VERSION COMPARATOR
+=head2 HOW TO CREATE A NEW SCHEME COMPARATOR CLASS
 
 =over
 
-=item * Create a new package using the naming convention C<< URI::VersionRange::Version::<scheme> >>
+=item * Create a new package using the naming convention C<< URI::VersionRange::Scheme::<scheme> >>
 by extending L<URI::VersionRange::Version>.
 
 =item * Implements the C<compare($left, $right)> subroutine with the algorithm required
@@ -83,13 +148,16 @@ first element the value of the version to be compared.
 
 =item * L<overload> C<< '<=>' >> and C<cmp> operators using C<compare> subroutine (MANDATORY)
 
+=item * Implement the C<from_native($self, $native)> subroutine to convert the
+native range of the scheme into a VERS string
+
 =back
 
 
 This is an example that implements a comparator for the C<generic> scheme using
 L<Version::libversion::XS> module:
 
-  package URI::VersionRange::Version::generic {
+  package URI::VersionRange::Scheme::generic {
 
       use Version::libversion::XS;
 
@@ -105,7 +173,7 @@ L<Version::libversion::XS> module:
 
 This is an another example for the C<rpm> scheme using L<RPM4> module:
 
-  package URI::VersionRange::Version::rpm {
+  package URI::VersionRange::Scheme::rpm {
 
       use RPM4;
 

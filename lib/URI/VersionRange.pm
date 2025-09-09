@@ -10,6 +10,7 @@ use List::Util qw(first);
 use Exporter   qw(import);
 
 use URI::VersionRange::Constraint;
+use URI::VersionRange::Util qw(native_range_to_vers version_compare);
 use URI::VersionRange::Version;
 
 use constant DEBUG => $ENV{VERS_DEBUG};
@@ -18,7 +19,7 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.23_4';
+our $VERSION = '2.23_5';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -44,44 +45,10 @@ sub new {
 
     $scheme = lc $scheme;
 
-    my $self = {scheme => $scheme, constraints => \@constraints, _version_class => _scheme_version_class($scheme)};
+    my $self
+        = {scheme => $scheme, constraints => \@constraints, scheme_class => URI::VersionRange::Version->load($scheme)};
 
     return bless $self, $class;
-
-}
-
-sub _load_version_class {
-
-    my $version_class = shift;
-
-    if ($version_class->can('new') or eval "require $version_class; 1") {
-        DEBUG and say STDERR "-- Loaded '$version_class' class";
-        return 1;
-    }
-
-    DEBUG and say STDERR "-- (E) Failed to load '$version_class' class:" if $@;
-
-    return 0;
-
-}
-
-sub _scheme_version_class {
-
-    my $scheme = shift;
-
-    my @CLASSES = (
-        join('::', 'URI::VersionRange::Version', lc($scheme)),    # Schema specific
-        'URI::VersionRange::Version::generic',                    # Generic or used-defined class
-        'URI::VersionRange::Version'                              # Fallback class
-    );
-
-    foreach my $version_class (@CLASSES) {
-        if (_load_version_class($version_class)) {
-            return $version_class;
-        }
-    }
-
-    Carp::croak 'Unable to find version scheme class';
 
 }
 
@@ -90,6 +57,18 @@ sub constraints { shift->{constraints} }
 
 sub encode_vers { __PACKAGE__->new(@_)->to_string }
 sub decode_vers { __PACKAGE__->from_string(shift) }
+
+sub from_native {
+
+    my ($class, %params) = @_;
+
+    my $scheme = delete $params{scheme} or Carp::croak "Invalid Version Range: 'scheme' is required";
+    my $range  = delete $params{range}  or Carp::croak "Invalid Version Range: 'range' is required";
+
+    my $vers = native_range_to_vers(lc $scheme, $range);
+    return $class->from_string($vers);
+
+}
 
 sub from_string {
 
@@ -166,7 +145,9 @@ sub from_string {
 }
 
 sub to_string {
-    return join '', 'vers:', $_[0]->scheme, '/', join('|', @{$_[0]->constraints});
+    my $self        = shift;
+    my @constraints = sort { version_compare($self->scheme, $a->version, $b->version) } @{$self->constraints};
+    return join '', 'vers:', $self->scheme, '/', join('|', @constraints);
 }
 
 sub constraint_contains {
@@ -175,7 +156,7 @@ sub constraint_contains {
 
     return TRUE if $constraint->comparator eq '*';
 
-    my $version_class = $self->{_version_class};
+    my $version_class = $self->{scheme_class};
 
     my $v1 = $version_class->new($version);
     my $v2 = $version_class->new($constraint->version);
@@ -198,7 +179,7 @@ sub contains {
     my @first  = ();
     my @second = ();
 
-    my $version_class = $self->{_version_class};
+    my $version_class = $self->{scheme_class};
 
     if (scalar @{$self->constraints} == 1) {
         return $self->constraint_contains($self->constraints->[0], $version);
