@@ -15,8 +15,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-
-our $VERSION = '2.23_4';
+our $VERSION = '2.23_5';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:(([/]{1,})?)([A-Za-z][A-Za-z0-9\.\-]*)([/]{1,}).+};
@@ -44,6 +43,8 @@ sub new {
         qualifiers => $qualifiers,
         subpath    => $subpath,
     );
+
+    $purl_type->validate(%components);
 
     my $self = bless \%components, $class;
 

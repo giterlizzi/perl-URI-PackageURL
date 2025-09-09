@@ -8,11 +8,15 @@ use warnings;
 use Carp ();
 use File::Spec;
 use JSON::PP;
+use List::Util            qw(first);
 use URI::PackageURL::Util qw(resources_path);
 
 use constant DEBUG => $ENV{PURL_DEBUG};
 
-our $VERSION = '2.23_4';
+our $VERSION = '2.23_5';
+
+
+my %ALGO_LENGTH = ('md5' => 32, 'sha1' => 40, 'sha256' => 64, 'sha384' => 96, 'sha512' => 128,);
 
 sub new {
 
@@ -126,6 +130,24 @@ TYPE: for ($components{type}) {
 
     }
 
+    return wantarray ? %components : \%components;
+
+}
+
+sub validate {
+
+    my $self = shift;
+
+    my %components = (
+        type       => undef,
+        namespace  => undef,
+        name       => undef,
+        version    => undef,
+        version    => undef,
+        qualifiers => {},
+        subpath    => undef,
+        @_
+    );
 
     # Check PURL components requirements
 
@@ -135,15 +157,33 @@ TYPE: for ($components{type}) {
         Carp::croak "Invalid PURL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /(\s|\%)/);
     }
 
-    # Check checksum (WARN)
+    # Check checksum qualifier
     if (defined $components{qualifiers}->{checksum} and ref $components{qualifiers}->{checksum} eq 'ARRAY') {
-        foreach (@{$components{qualifiers}->{checksum}}) {
-            my ($algo, $checksum) = split ':', $_;
-            Carp::carp "Malformed '$algo' checksum" if $checksum !~ /^[0-9a-f]{32,}$/;
-            # Actually some checksums are truncated in tests
-        }
-    }
 
+        foreach (@{$components{qualifiers}->{checksum}}) {
+
+            my ($algo, $checksum) = split ':', $_;
+
+            if (defined $ALGO_LENGTH{$algo}) {
+
+                if (length($checksum) != $ALGO_LENGTH{$algo}) {
+                    DEBUG and say STDERR "PURL: Malformed '$algo' checksum qualifier (invalid length)";
+                }
+
+                if ($checksum !~ m/^[0-9a-f]+$/) {
+                    DEBUG and say STDERR "PURL: Malformed '$algo' checksum qualifier (invalid characters)";
+                }
+
+            }
+
+            # Fallback
+            elsif ($checksum !~ /^[0-9a-f]{32,}$/) {
+                DEBUG and say STDERR "PURL: Malformed '$algo' checksum qualifier (invalid characters or length)";
+            }
+
+        }
+
+    }
 
     # PURL type definition validation
     if (my $definition = $self->definition) {
@@ -176,9 +216,21 @@ TYPE: for ($components{type}) {
 
         }
 
+        # Default known qualifiers
+        my @known_qualifiers = (qw[
+            vers
+            repository_url
+            download_url
+            vcs_url
+            file_name
+            checksum
+            checksums
+        ]);
+
         foreach my $rule (@{$definition->{qualifiers_definition}}) {
 
             my $key = $rule->{key};
+            push @known_qualifiers, $key;
 
             my $requirement = $rule->{requirement};
             next unless $requirement;
@@ -193,6 +245,12 @@ TYPE: for ($components{type}) {
                 Carp::croak sprintf("Invalid PURL: Required '%s' qualifier for %s PURL type", $key, $purl_type);
             }
 
+        }
+
+        # Check unknown qualifiers
+        foreach my $key (keys %{$components{qualifiers}}) {
+            DEBUG and say STDERR "PURL: '$key' is known qualifier for '$purl_type' PURL type"
+                unless (first { $key eq $_ } @known_qualifiers);
         }
 
 
@@ -272,7 +330,7 @@ TYPE: for ($components{type}) {
 
     }
 
-    return wantarray ? %components : \%components;
+    return 1;
 
 }
 

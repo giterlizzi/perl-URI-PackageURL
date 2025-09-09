@@ -10,7 +10,7 @@ use File::Spec::Functions qw(catfile);
 
 use Exporter qw(import);
 
-our $VERSION = '2.23_4';
+our $VERSION = '2.23_5';
 our @EXPORT  = qw(resources_path purl_to_urls);
 
 sub resources_path { catfile(dirname(__FILE__), 'resources') }
@@ -424,7 +424,7 @@ URL::PackageURL::Util is the utility package for URL::PackageURL.
 Converts the given Package URL string or L<URI::PackageURL> instance and return
 the hash with C<repository> and/or C<download> URL.
 
-B<NOTE>: This utility support few purl types (C<bitbucket>,  C<cargo>, C<composer>,
+B<NOTE>: This utility support few PURL types (C<bitbucket>,  C<cargo>, C<composer>,
 C<cpan>, C<docker>, C<gem>, C<github>, C<gitlab>, C<luarocks>, C<maven>, C<npm>, C<nuget>, C<pypi>).
 
   +-----------+------------+--------------+
