@@ -10,11 +10,13 @@ Change history for URI-PackageURL
     - Added "--info TYPE" option to "purl-tool(1)" for display information about
       provided PURL type (allowed components, repository, examples, etc.)
     - Improved man pages for "purl-tool(1)" and "vers-tool(1)"
-    - Added PURL tests from https://github.com/package-url/purl-spec (package-url/purl-spec#514)
-    - Added VERS tests from https://github.com/package-url/vers-spec (package-url/vers-spec#28)
+    - Added PURL test cases from https://github.com/package-url/purl-spec (package-url/purl-spec#514)
+    - Added VERS test cases from https://github.com/package-url/vers-spec (package-url/vers-spec#28)
     - Improved 'name' and 'namespace' parsing (package-url/purl-spec#582 - package-url/purl-spec#583)
     - FIX NPM PURL string parser
-    - Emits a warning when the checksum is not well formatted
+    - writes some debug messages when checksums are not formatted correctly and
+      if there are unknown qualifiers.
+    - Added "URI::VersionRange->from_native" method
 
 2.23 2025-07-11
     - Updated CPAN PURL type spec
