@@ -17,6 +17,7 @@ Change history for URI-PackageURL
     - writes some debug messages when checksums are not formatted correctly and
       if there are unknown qualifiers.
     - Added "URI::VersionRange->from_native" method
+    - Added "PURL" and "VERS" package alias for "URI::PackageURL" and "URI::VersionRange"
 
 2.23 2025-07-11
     - Updated CPAN PURL type spec
