@@ -117,6 +117,7 @@ sub _to_cpan_urls {
     my $file_ext       = $qualifiers->{ext}            || 'tar.gz';
     my $repository_url = $qualifiers->{repository_url} || $purl->definition->default_repository_url;
     my $distpath       = $qualifiers->{distpath};
+    my $distdir        = $qualifiers->{distdir};
 
     $repository_url =~ s{/$}{};
 
@@ -133,10 +134,13 @@ sub _to_cpan_urls {
 
         $urls->{repository} = "https://metacpan.org/release/$author/$name-$version";
 
-        if (!$distpath) {
-            $urls->{download} = "$repository_url/authors/id/$author_a/$author_au/$author/$name-$version.$file_ext";
+        my $download_base_url = "$repository_url/authors/id";
+
+        if (!$distpath && !$distdir) {
+            $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$name-$version.$file_ext";
         }
-        else {
+
+        if ($distpath && !$distdir) {
 
             $distpath =~ s{^/}{};
             $distpath =~ s{^CPAN/}{};
@@ -153,8 +157,12 @@ sub _to_cpan_urls {
 
             }
 
-            $urls->{download} = "$repository_url/authors/id/$distpath";
+            $urls->{download} = "$download_base_url/$distpath";
 
+        }
+
+        if ($distdir && !$distpath) {
+            $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$distdir/$name-$version.$file_ext";
         }
 
     }
