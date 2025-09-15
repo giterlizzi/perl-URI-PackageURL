@@ -5,15 +5,11 @@ use strict;
 use utf8;
 use warnings;
 
-use File::Basename        qw(dirname);
-use File::Spec::Functions qw(catfile);
-
 use Exporter qw(import);
 
-our $VERSION = '2.23_5';
+our $VERSION = '2.23_6';
 our @EXPORT  = qw(resources_path purl_to_urls);
 
-sub resources_path { catfile(dirname(__FILE__), 'resources') }
 
 sub purl_to_urls {
 
@@ -25,20 +21,20 @@ sub purl_to_urls {
     }
 
     my %TYPES = (
-        bitbucket => \&_bitbucket_urls,
-        cargo     => \&_cargo_urls,
-        composer  => \&_composer_urls,
-        cpan      => \&_cpan_urls,
-        docker    => \&_docker_urls,
-        gem       => \&_gem_urls,
-        github    => \&_github_urls,
-        gitlab    => \&_gitlab_urls,
-        golang    => \&_golang_urls,
-        luarocks  => \&_luarocks_urls,
-        maven     => \&_maven_urls,
-        npm       => \&_npm_urls,
-        nuget     => \&_nuget_urls,
-        pypi      => \&_pypi_urls,
+        bitbucket => \&_to_bitbucket_urls,
+        cargo     => \&_to_cargo_urls,
+        composer  => \&_to_composer_urls,
+        cpan      => \&_to_cpan_urls,
+        docker    => \&_to_docker_urls,
+        gem       => \&_to_gem_urls,
+        github    => \&_to_github_urls,
+        gitlab    => \&_to_gitlab_urls,
+        golang    => \&_to_golang_urls,
+        luarocks  => \&_to_luarocks_urls,
+        maven     => \&_to_maven_urls,
+        npm       => \&_to_npm_urls,
+        nuget     => \&_to_nuget_urls,
+        pypi      => \&_to_pypi_urls,
     );
 
     my $urls = {};
@@ -55,7 +51,7 @@ sub purl_to_urls {
 
 }
 
-sub _bitbucket_urls {
+sub _to_bitbucket_urls {
 
     my $purl = shift;
 
@@ -79,7 +75,7 @@ sub _bitbucket_urls {
 
 }
 
-sub _cargo_urls {
+sub _to_cargo_urls {
 
     my $purl = shift;
 
@@ -97,7 +93,7 @@ sub _cargo_urls {
 
 }
 
-sub _composer_urls {
+sub _to_composer_urls {
 
     my $purl = shift;
 
@@ -110,32 +106,56 @@ sub _composer_urls {
 
 }
 
-sub _cpan_urls {
+sub _to_cpan_urls {
 
-    my $purl = shift;
+    my ($purl, $purl_type) = @_;
 
     my $name           = $purl->name;
     my $version        = $purl->version;
     my $qualifiers     = $purl->qualifiers;
     my $author         = $purl->namespace ? uc($purl->namespace) : undef;
     my $file_ext       = $qualifiers->{ext}            || 'tar.gz';
-    my $repository_url = $qualifiers->{repository_url} || 'https://www.cpan.org';
+    my $repository_url = $qualifiers->{repository_url} || $purl->definition->default_repository_url;
+    my $distpath       = $qualifiers->{distpath};
+
+    $repository_url =~ s{/$}{};
 
     if ($repository_url !~ /^(http|https|file|ftp):\/\//) {
         $repository_url = 'https://' . $repository_url;
     }
 
-    $name =~ s/\:\:/-/g;    # TODO
-
     my $urls = {repository => "https://metacpan.org/dist/$name"};
 
     if ($name && $version && $author) {
 
-        my $author_1 = substr($author, 0, 1);
-        my $author_2 = substr($author, 0, 2);
+        my $author_a  = substr($author, 0, 1);
+        my $author_au = substr($author, 0, 2);
 
         $urls->{repository} = "https://metacpan.org/release/$author/$name-$version";
-        $urls->{download}   = "$repository_url/authors/id/$author_1/$author_2/$author/$name-$version.$file_ext";
+
+        if (!$distpath) {
+            $urls->{download} = "$repository_url/authors/id/$author_a/$author_au/$author/$name-$version.$file_ext";
+        }
+        else {
+
+            $distpath =~ s{^/}{};
+            $distpath =~ s{^CPAN/}{};
+            $distpath =~ s{^id/}{};
+            $distpath =~ s{^authors/id/}{};
+
+            if ($distpath !~ /^([A-Z]{1})\/([A-Z]{2})/) {
+
+                my @parts     = split '/', $distpath;
+                my $author_a  = substr($parts[0], 0, 1);
+                my $author_au = substr($parts[0], 0, 2);
+
+                $distpath = join '/', $author_a, $author_au, $distpath;
+
+            }
+
+            $urls->{download} = "$repository_url/authors/id/$distpath";
+
+        }
 
     }
 
@@ -143,7 +163,7 @@ sub _cpan_urls {
 
 }
 
-sub _docker_urls {
+sub _to_docker_urls {
 
     my $purl = shift;
 
@@ -175,7 +195,7 @@ sub _docker_urls {
 
 }
 
-sub _gem_urls {
+sub _to_gem_urls {
 
     my $purl = shift;
 
@@ -193,7 +213,7 @@ sub _gem_urls {
 
 }
 
-sub _github_urls {
+sub _to_github_urls {
 
     my $purl = shift;
 
@@ -226,7 +246,7 @@ sub _github_urls {
 
 }
 
-sub _gitlab_urls {
+sub _to_gitlab_urls {
 
     my $purl = shift;
 
@@ -250,7 +270,7 @@ sub _gitlab_urls {
 
 }
 
-sub _golang_urls {
+sub _to_golang_urls {
 
     my $purl = shift;
 
@@ -273,7 +293,7 @@ sub _golang_urls {
 
 }
 
-sub _luarocks_urls {
+sub _to_luarocks_urls {
 
     my $purl = shift;
 
@@ -301,7 +321,7 @@ sub _luarocks_urls {
 
 }
 
-sub _maven_urls {
+sub _to_maven_urls {
 
     my $purl = shift;
 
@@ -333,7 +353,7 @@ sub _maven_urls {
 
 }
 
-sub _npm_urls {
+sub _to_npm_urls {
 
     my $purl = shift;
 
@@ -363,7 +383,7 @@ sub _npm_urls {
 
 }
 
-sub _nuget_urls {
+sub _to_nuget_urls {
 
     my $purl = shift;
 
@@ -381,7 +401,7 @@ sub _nuget_urls {
 
 }
 
-sub _pypi_urls {
+sub _to_pypi_urls {
 
     my $purl = shift;
 

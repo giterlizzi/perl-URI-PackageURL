@@ -7,41 +7,39 @@ use Data::Dumper;
 use CPAN::DistnameInfo;
 use URI::PackageURL;
 
-while (my $file = <DATA>) {
+while (my $distname = <DATA>) {
 
-    chomp $file;
+    chomp $distname;
 
-    my $d = CPAN::DistnameInfo->new($file);
+    my $d = CPAN::DistnameInfo->new($distname);
 
     next unless $d->cpanid;
     next unless $d->dist;
 
-    subtest "$file" => sub {
+    my $qualifiers = {};
 
-        my $qualifiers = {};
+    # "tar.gz" is the default extension for CPAN distributions
+    if ($d->extension ne 'tar.gz') {
+        $qualifiers->{ext} = $d->extension;
+    }
 
-        # "tar.gz" is the default extension for CPAN distributions
-        if ($d->extension ne 'tar.gz') {
-            $qualifiers->{ext} = $d->extension;
-        }
-
-        my $purl_1 = URI::PackageURL->new(
+    my $purl = eval {
+        URI::PackageURL->new(
             type       => 'cpan',
             namespace  => $d->cpanid,
             name       => $d->dist,
             version    => $d->version,
             qualifiers => $qualifiers
         );
-
-        ok($purl_1, "Conversion: $file --> $purl_1");
-
-        my $purl_2 = URI::PackageURL->from_string($purl_1->to_string);
-
-        is($d->cpanid,  $purl_2->namespace, 'dist(cpanid)  == purl(namespace)');
-        is($d->dist,    $purl_2->name,      'dist(dist)    == purl(name)');
-        is($d->version, $purl_2->version,   'dist(version) == purl(version)');
-
     };
+
+    fail(@$) if $@;
+
+    ok($purl, "Conversion: $distname --> $purl");
+
+    is($d->cpanid,  $purl->namespace, 'dist(cpanid)  == purl(namespace)');
+    is($d->dist,    $purl->name,      'dist(dist)    == purl(name)');
+    is($d->version, $purl->version,   'dist(version) == purl(version)');
 
 }
 

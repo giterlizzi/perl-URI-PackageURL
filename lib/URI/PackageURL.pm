@@ -11,11 +11,13 @@ use Exporter qw(import);
 use URI::PackageURL::Type;
 use URI::PackageURL::Util qw(purl_to_urls);
 
+BEGIN { *PURL:: = *URI::PackageURL:: }
+
 use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.23_5';
+our $VERSION = '2.23_6';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:(([/]{1,})?)([A-Za-z][A-Za-z0-9\.\-]*)([/]{1,}).+};
@@ -24,7 +26,6 @@ sub new {
 
     my ($class, %params) = @_;
 
-    my $scheme     = 'pkg';    # The scheme is a constant with the value "pkg".
     my $type       = delete $params{type} or Carp::croak "Invalid PURL: 'type' component is required";
     my $namespace  = delete $params{namespace};
     my $name       = delete $params{name} or Carp::croak "Invalid PURL: 'name' component is required";
@@ -32,10 +33,10 @@ sub new {
     my $qualifiers = delete $params{qualifiers} // {};
     my $subpath    = delete $params{subpath};
 
-    my $purl_type = URI::PackageURL::Type->new($type);
+    my $purl_definition = URI::PackageURL::Type->new($type);
 
-    my %components = $purl_type->normalize(
-        scheme     => $scheme,
+    my %components = $purl_definition->normalize(
+        scheme     => 'pkg',         # The scheme is a constant with the value "pkg".
         type       => $type,
         namespace  => $namespace,
         name       => $name,
@@ -44,27 +45,17 @@ sub new {
         subpath    => $subpath,
     );
 
-    $purl_type->validate(%components);
+    $purl_definition->validate(%components);
 
-    my $self = bless \%components, $class;
+    my $self = {components => \%components, definition => $purl_definition};
 
-    return $self;
-
-}
-
-sub _component {
-
-    my ($self, $component, $value) = @_;
-
-    if (@_ == 3) {
-        $self->{$component} = $value;
-    }
-
-    return $self->{$component};
+    return bless $self, $class;
 
 }
 
-sub scheme     {'pkg'}
+sub definition { shift->{definition} }
+
+sub scheme     {'pkg'}    # The scheme is a constant with the value "pkg".
 sub type       { shift->_component('type',       @_) }
 sub namespace  { shift->_component('namespace',  @_) }
 sub name       { shift->_component('name',       @_) }
@@ -75,6 +66,15 @@ sub subpath    { shift->_component('subpath',    @_) }
 sub encode_purl { __PACKAGE__->new(@_)->to_string }
 sub decode_purl { __PACKAGE__->from_string(shift) }
 
+sub clone {
+    my $self = shift;
+    bless {%$self}, ref $self;
+}
+
+sub to_urls        { purl_to_urls(shift) }
+sub download_url   { shift->to_urls->{download} }
+sub repository_url { shift->to_urls->{repository} }
+
 sub from_string {
 
     my ($class, $string) = @_;
@@ -83,8 +83,8 @@ sub from_string {
     DEBUG and say STDERR "-- REGEXP: $PURL_REGEXP";
 
     # Strip slash / after scheme
-    while ($string =~ m|^pkg:/|) {
-        $string =~ s|^pkg:/|pkg:|;
+    while ($string =~ m{^pkg:/}) {
+        $string =~ s{^pkg:/}{pkg:};
     }
 
     if ($string !~ /$PURL_REGEXP/) {
@@ -138,13 +138,8 @@ sub from_string {
             $value = _url_decode($value);
 
             if ($key eq 'checksums' || $key eq 'checksum') {
-
-                if ($key eq 'checksums') {
-                    Carp::carp "Detected 'checksums' qualifier. Use 'checksum' qualifier instead.";
-                }
-
+                Carp::carp "Detected 'checksums' qualifier. Use 'checksum' qualifier instead." if ($key eq 'checksums');
                 $value = [split(',', $value)];
-
             }
 
             $components{qualifiers}->{lc $key} = $value;
@@ -269,16 +264,14 @@ sub to_string {
     # Qualifiers
     if (my $qualifiers = $self->qualifiers) {
 
-        if (defined $qualifiers->{checksum} && ref $qualifiers->{checksum} eq 'ARRAY') {
-            $qualifiers->{checksum} = join ',', @{$qualifiers->{checksum}};
+        # TODO: Legacy 'checksums' qualifier will be dropped in the future
+        foreach (qw[checksum checksums]) {
+            if (defined $qualifiers->{$_} && ref $qualifiers->{$_} eq 'ARRAY') {
+                $qualifiers->{$_} = join ',', @{$qualifiers->{$_}};
+            }
         }
 
-        # Legacy 'checksums' qualifier
-        if (defined $qualifiers->{checksums} && ref $qualifiers->{checksums} eq 'ARRAY') {
-            $qualifiers->{checksums} = join ',', @{$qualifiers->{checksums}};
-        }
-
-        # TODO Use URI::VersionRange during qualifiers decode ?
+        # TODO: Use URI::VersionRange during qualifiers decode ?
         if (defined $qualifiers->{vers} && ref $qualifiers->{vers} eq 'URI::VersionRange') {
             $qualifiers->{vers} = $qualifiers->{vers}->to_string;
             say STDERR $qualifiers->{vers};
@@ -308,27 +301,28 @@ sub to_string {
 
 }
 
-sub to_urls {
-    purl_to_urls(shift);
-}
-
 sub to_hash {
 
     my $self = shift;
 
-    return {
-        scheme     => $self->scheme,
-        type       => $self->type,
-        name       => $self->name,
-        version    => $self->version,
-        namespace  => $self->namespace,
-        qualifiers => $self->qualifiers,
-        subpath    => $self->subpath,
-    };
+    my %hash = map { $_ => $self->{components}->{$_} } qw(scheme type name version namespace qualifiers subpath);
+    return \%hash;
 
 }
 
 sub TO_JSON { shift->to_hash }
+
+sub _component {
+
+    my ($self, $component, $value) = @_;
+
+    if (@_ == 3) {
+        $self->{components}->{$component} = $value;
+    }
+
+    return $self->{components}->{$component};
+
+}
 
 sub _url_encode {
 
@@ -351,6 +345,7 @@ sub _encode {
     $string =~ s{%2F}{/}g;
 
     return $string;
+
 }
 
 sub _url_decode {
@@ -368,7 +363,7 @@ sub _url_decode {
 __END__
 =head1 NAME
 
-URI::PackageURL - Perl extension for Package URL (aka "purl")
+URI::PackageURL - Perl extension for PURL (Package URL)
 
 =head1 SYNOPSIS
 
@@ -415,13 +410,35 @@ URI::PackageURL - Perl extension for Package URL (aka "purl")
   
   $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
   URI::PackageURL->new(type => 'cpan', name => 'URI::PackageURL');
+
+
+  # alias
+
+  $purl = PURL->new(
+    type      => 'cpan',
+    namespace => 'GDT',
+    name      => 'URI-PackageURL',
+    version   => '2.23'
+  );
+
+  $purl = PURL->from_string('pkg:cpan/GDT/URI-PackageURL');
+
+
+  # clone
+
+  $cloned = $purl->clone;
+
+  $cloned->version('1.00');
+
+  say $cloned; # pkg:cpan/GDT/URI-PackageURL@1.00
+  say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.23
   
 
 =head1 DESCRIPTION
 
-This module converts Package URL components to "purl" string and vice versa.
+This module converts PURL components to PURL string and vice versa.
 
-A Package URL (aka "purl") is a URL string used to identify and locate a software
+A PURL (Package URL) is a URL string used to identify and locate a software
 package in a mostly universal and uniform way across programing languages,
 package managers, packaging conventions, tools, APIs and databases.
 
@@ -461,7 +478,7 @@ Optional.
 
 =head2 CPAN PURL TYPE
 
-C<cpan> is an official "purl" type (L<https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst>)
+C<cpan> is an official PURL type (L<https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst>)
 
 =over
 
@@ -509,7 +526,7 @@ They are exported by default:
 
 =item $purl_string = encode_purl(%purl_components)
 
-Converts the given Package URL components to "purl" string. Croaks on error.
+Converts the given PURL components to PURL string. Croaks on error.
 
 This function call is functionally identical to:
 
@@ -517,7 +534,7 @@ This function call is functionally identical to:
 
 =item $purl_components = decode_purl($purl_string)
 
-Converts the given "purl" string to Package URL components. Croaks on error.
+Converts the given PURL string to PURL components. Croaks on error.
 
 This function call is functionally identical to:
 
@@ -531,7 +548,7 @@ This function call is functionally identical to:
 
 =item $purl = URI::PackageURL->new(%components)
 
-Create new B<URI::PackageURL> instance using provided Package URL components
+Create new B<URI::PackageURL> instance using provided PURL components
 (type, name, version ,etc).
 
 =item $purl->scheme
@@ -571,9 +588,36 @@ Stringify Package URL components.
 
 Return B<download> and/or B<repository> URLs.
 
+=item $purl->download_url
+
+Return B<download> URL.
+
+See C<purl_to_urls> in L<URI::PackageURL::Util>.
+
+=item $purl->repository_url
+
+Return B<repository> URL.
+
+See C<purl_to_urls> in L<URI::PackageURL::Util>.
+
 =item $purl->to_hash
 
 Turn PURL components into a hash reference.
+
+=item $purl->definition
+
+Return L<URI::PackageURL::Type> instance.
+
+=item $purl->clone
+
+Clone PURL object.
+
+    $cloned = $purl->clone;
+
+    $cloned->version('1.00');
+
+    say $cloned; # pkg:cpan/GDT/URI-PackageURL@1.00
+    say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.23
 
 =item $purl->TO_JSON
 
@@ -595,7 +639,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Cpanel::JSO
 
 =item $purl = URI::PackageURL->from_string($purl_string);
 
-Converts the given "purl" string to Package URL components. Croaks on error.
+Converts the given PURL string to PURL components. Croaks on error.
 
 =back
 

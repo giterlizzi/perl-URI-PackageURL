@@ -1,5 +1,6 @@
 #!perl
 
+use File::Find qw(find);
 use File::Spec;
 use JSON::PP;
 use Test::More;
@@ -10,25 +11,14 @@ my $purl_tests_dir = File::Spec->catdir('t', 'vers');
 
 BAIL_OUT('"vers" tests directory not found') if (!-d $purl_tests_dir);
 
-foreach my $test_file (find($purl_tests_dir)) {
-    execute_test($test_file);
-}
-
-sub find {
-
-    my $directory = shift;
-
-    opendir my $dh, $directory or Carp::croak "Can't open directory: $!";
-
-    return
-        map { -f $_ ? $_ : () }
-        map { $_, -d $_ ? find($_) : () } map { /\A\.\.?\z/ ? () : File::Spec->catfile($directory, $_) } readdir $dh;
-
-}
+find {wanted => \&execute_test, no_chdir => 1}, $purl_tests_dir;
 
 sub execute_test {
 
-    my $test_file = shift;
+    my $test_file = $_;
+
+    return if -d $test_file;
+    return unless $test_file =~ /\.json/;
 
     open my $fh, '<', $test_file or Carp::croak "Can't open file: $!";
 
@@ -38,8 +28,6 @@ sub execute_test {
     BAIL_OUT("$test_file - $@") if $@;
 
     foreach my $test (@{$test_data->{tests}}) {
-
-        #note sprintf '[%s] %s', $test->{test_group}, $test->{description};
 
     TODO: {
             execute_containment_test($test) if $test->{test_type} eq 'containment';

@@ -74,7 +74,22 @@ my @tests = (
         purl       => 'pkg:github/nexb/scancode-toolkit@v3.1.1',
         download   => 'https://github.com/nexb/scancode-toolkit/archive/refs/tags/v3.1.1.tar.gz',
         repository => 'https://github.com/nexb/scancode-toolkit'
-    }
+    },
+    {
+        purl       => 'pkg:cpan/ILYAZ/Term-Gnuplot@0.90380906?distpath=I/IL/ILYAZ/modules/Term-Gnuplot-0.90380906.zip',
+        download   => 'https://www.cpan.org/authors/id/I/IL/ILYAZ/modules/Term-Gnuplot-0.90380906.zip',
+        repository => 'https://metacpan.org/release/ILYAZ/Term-Gnuplot-0.90380906',
+    },
+    {
+        purl       => 'pkg:cpan/ILYAZ/Term-Gnuplot@0.90380906?distpath=authors/id/I/IL/ILYAZ/modules/Term-Gnuplot-0.90380906.zip',
+        download   => 'https://www.cpan.org/authors/id/I/IL/ILYAZ/modules/Term-Gnuplot-0.90380906.zip',
+        repository => 'https://metacpan.org/release/ILYAZ/Term-Gnuplot-0.90380906',
+    },
+    {
+        purl       => 'pkg:cpan/ILYAZ/Term-Gnuplot@0.90380906?distpath=ILYAZ/modules/Term-Gnuplot-0.90380906.zip',
+        download   => 'https://www.cpan.org/authors/id/I/IL/ILYAZ/modules/Term-Gnuplot-0.90380906.zip',
+        repository => 'https://metacpan.org/release/ILYAZ/Term-Gnuplot-0.90380906',
+    },
 );
 #>>>
 

@@ -12,9 +12,10 @@ use JSON::PP     ();
 use Pod::Text    ();
 use Pod::Usage   qw(pod2usage);
 
-use URI::PackageURL ();
+use URI::PackageURL       ();
+use URI::PackageURL::Type ();
 
-our $VERSION = '2.23_5';
+our $VERSION = '2.23_6';
 
 sub cli_error {
     my ($error) = @_;
@@ -90,7 +91,7 @@ VERSION
     }
 
     if (defined $options{info}) {
-        return definition_help($options{info});
+        return definition_help(lc $options{info});
     }
 
     if (defined $options{type}) {
@@ -235,33 +236,37 @@ sub definition_help {
 
     my $type = shift;
 
-    my $purl_type = URI::PackageURL::Type->new($type);
+    my $definition = URI::PackageURL::Type->new($type);
 
-    my $definition = $purl_type->definition;
-
-    unless ($definition) {
+    unless (%{$definition->definition}) {
         say "No known PURL type definition for '$type'";
         exit 1;
     }
 
-    my $purl_syntax_tmpl = 'pkg:%s%s/E<lt>nameE<gt>@E<lt>versionE<gt>?E<lt>qualifiersE<gt>#E<lt>subpathE<gt>';
+    my $type_name      = $definition->type_name;
+    my $description    = $definition->description;
+    my $reference_urls = $definition->reference_urls;
+    my $examples       = $definition->examples;
+    my $note           = $definition->note;
+    my $repository     = $definition->repository;
+    my $schema_id      = $definition->schema_id;
 
-    my $purl_syntax = sprintf $purl_syntax_tmpl, $definition->{type}, '';
+    my $qualifiers_definition = $definition->qualifiers_definition;
 
-    if (my $ns_definition = $definition->{namespace_definition}) {
-        if (defined $ns_definition->{requirement} && $ns_definition->{requirement} =~ /(required|optional)/) {
-            $purl_syntax = sprintf $purl_syntax_tmpl, $definition->{type}, '/E<lt>namespaceE<gt>';
-        }
-    }
+    my $have_ns = ($definition->component_is_required('namespace') || $definition->component_is_optional('namespace'));
+
+    my $purl_syntax = "pkg:$type";
+    $purl_syntax .= '/E<lt>namespaceE<gt>' if $have_ns;
+    $purl_syntax .= '/E<lt>nameE<gt>@E<lt>versionE<gt>?E<lt>qualifiersE<gt>#E<lt>subpathE<gt>';
 
     my $man = <<EOF;
 =head1 NAME
 
-$definition->{type} - $definition->{type_name}
+$type - $type_name
 
 =head1 DESCRIPTION
 
-$definition->{description}
+$description
 
 =head1 SYNTAX
 
@@ -273,69 +278,76 @@ EOF
 
     foreach my $component (qw[namespace name version subpath]) {
 
-        next unless defined $definition->{"${component}_definition"};
+        next unless $definition->component_have_definition($component);
 
-        my $component_def = $definition->{"${component}_definition"};
+        my $requirement          = $definition->component_requirement($component);
+        my $permitted_characters = $definition->component_permitted_characters($component);
+        my $normalization_rules  = $definition->component_normalization_rules($component);
+        my $case_sensitive       = $definition->component_case_sensitive($component);
+        my $native_name          = $definition->component_native_name($component);
+        my $note                 = $definition->component_note($component);
 
         $man .= sprintf "=head2 %s\n\n", ucfirst $component;
         $man .= "=over\n\n";
 
-        if ($component_def->{requirement}) {
-            $man .= sprintf "=item B<Requirement>: %s\n\n", ucfirst($component_def->{requirement});
+        if ($requirement) {
+            $man .= sprintf "=item B<Requirement>: %s\n\n", ucfirst($requirement);
         }
 
-        if ($component_def->{permitted_characters}) {
-            $man .= sprintf "=item B<Permitted Characters>: %s\n\n", ucfirst($component_def->{permitted_characters});
+        if ($permitted_characters) {
+            $man .= sprintf "=item B<Permitted Characters>: %s\n\n", ucfirst($permitted_characters);
         }
 
-        if ($component_def->{case_sensitive}) {
-            $man .= sprintf "=item B<Permitted Characters>: %s\n\n", ($component_def->{case_sensitive} ? 'Yes' : 'No');
+        if ($case_sensitive) {
+            $man .= sprintf "=item B<Is Case Sensitive>: %s\n\n", ($case_sensitive ? 'Yes' : 'No');
         }
 
-        if ($component_def->{normalization_rules}) {
+        if (@{$normalization_rules}) {
+
             $man .= "=item B<Normalization Rules>:\n\n";
             $man .= "=over\n\n";
 
-            foreach (@{$component_def->{normalization_rules}}) {
+            foreach (@{$normalization_rules}) {
                 $man .= sprintf "=item * %s\n\n", $_;
             }
 
             $man .= "=back\n\n";
+
         }
 
-        if ($component_def->{native_name}) {
-            $man .= sprintf "=item B<Native Label>: %s\n\n", $component_def->{native_name};
+        if ($native_name) {
+            $man .= "=item B<Native Label>: $native_name\n\n";
         }
 
         $man .= "=back\n\n";
 
-        if (my $note = $component_def->{note}) {
-            $man .= sprintf "%s\n\n", $note;
+        if ($note) {
+            $man .= sprintf "$note\n\n";
         }
     }
 
-    if (my $qualifiers_def = $definition->{qualifiers_definition}) {
+    if (@{$qualifiers_definition}) {
 
         $man .= "=head2 Qualifiers\n\n";
         $man .= "=over\n\n";
 
-        foreach my $qualifier_def (@{$qualifiers_def}) {
+        foreach my $qualifier (@{$qualifiers_definition}) {
 
-            $man .= sprintf "=item C<%s>\n\n", $qualifier_def->{key};
+            $man .= sprintf "=item C<%s>\n\n", $qualifier->{key};
 
-            if (my $requirement = $qualifier_def->{requirement}) {
+            if (my $requirement = $qualifier->{requirement}) {
                 $man .= sprintf "Requirement: %s\n\n", ucfirst($requirement);
             }
 
-            if (my $native_name = $qualifier_def->{native_name}) {
+            if (my $native_name = $qualifier->{native_name}) {
                 $man .= sprintf "Native name: %s\n\n", $native_name;
             }
 
-            if (my $default_value = $qualifier_def->{default_value}) {
+            if (my $default_value = $qualifier->{default_value}) {
                 $man .= sprintf "Default value: %s\n\n", $default_value;
             }
 
-            $man .= sprintf "%s\n\n", $qualifier_def->{description};
+            $man .= sprintf "%s\n\n", $qualifier->{description};
 
         }
 
@@ -343,30 +355,29 @@ EOF
 
     }
 
-    if (my $repository_def = $definition->{repository}) {
+    if ($repository) {
 
-        my $use_repository         = $repository_def->{use_repository} ? 'Yes' : 'No';
-        my $default_repository_url = $repository_def->{default_repository_url};
+        my $use_repository         = $repository->{use_repository} ? 'Yes' : 'No';
+        my $default_repository_url = $repository->{default_repository_url};
 
         $man .= "=head1 REPOSITORY\n\n";
         $man .= "=over\n\n";
-        $man .= sprintf "=item B<Use repository>: %s\n\n", $repository_def->{use_repository} ? 'Yes' : 'No';
-        $man .= sprintf "=item B<Default repository URL>: %s\n\n",
-            $repository_def->{default_repository_url} || '(none)';
+        $man .= sprintf "=item B<Use repository>: %s\n\n",         $repository->{use_repository} ? 'Yes' : 'No';
+        $man .= sprintf "=item B<Default repository URL>: %s\n\n", $repository->{default_repository_url} || '(none)';
         $man .= "=back\n\n";
 
-        if (my $note = $repository_def->{note}) {
-            $man .= sprintf "%s\n\n", $note;
+        if (my $note = $repository->{note}) {
+            $man .= sprintf "$note\n\n";
         }
 
     }
 
-    if ($definition->{examples}) {
+    if (@{$examples}) {
 
         $man .= "=head1 EXAMPLES\n\n";
         $man .= "=over\n\n";
 
-        foreach (@{$definition->{examples}}) {
+        foreach (@{$examples}) {
             $man .= sprintf "=item * %s\n\n", $_;
         }
 
@@ -374,18 +385,18 @@ EOF
 
     }
 
-    if ($definition->{note}) {
+    if ($note) {
         $man .= "=head1 NOTES\n\n";
-        $man .= sprintf "%s\n\n", $definition->{note};
+        $man .= sprintf "$note\n\n";
     }
 
     $man .= "=head1 REFERENCES\n\n";
     $man .= "=over\n\n";
 
-    $man .= sprintf "=item * %s schema ID, L<%s>\n\n", $definition->{type_name}, $definition->{'$id'};
+    $man .= sprintf "=item * %s schema ID, L<%s>\n\n", $type_name, $schema_id;
 
-    foreach (@{$definition->{reference_urls}}) {
-        $man .= sprintf "=item * %s reference, L<%s>\n\n", $definition->{type_name}, $_;
+    foreach (@{$reference_urls}) {
+        $man .= sprintf "=item * %s reference, L<%s>\n\n", $type_name, $_;
     }
 
     $man .= "=item * PURL specification, L<https://github.com/package-url/purl-spec>\n\n";
@@ -393,9 +404,7 @@ EOF
 
     $man .= "=back\n\n";
 
-
-    my $parser = Pod::Text->new;
-    $parser->parse_string_document($man, \my $output);
+    Pod::Text->new->parse_string_document($man, \my $output);
 
     exit;
 

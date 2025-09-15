@@ -3,6 +3,7 @@
 use File::Spec;
 use JSON::PP;
 use Test::More;
+use File::Find qw(find);
 
 require_ok('URI::PackageURL');
 
@@ -10,47 +11,27 @@ my $purl_tests_dir = File::Spec->catdir('t', 'purl');
 
 BAIL_OUT('"purl" tests directory not found') if (!-d $purl_tests_dir);
 
-$ENV{PURL_LEGACY_CPAN_TYPE} = 1;
 
-foreach my $test_file (find($purl_tests_dir)) {
-
-    if (my $purl_type = $ENV{PURL_TYPE}) {
-        next unless ($test_file =~ /$purl_type/);
-        diag "Test only $ENV{PURL_TYPE} testcase";
-    }
-
-    # (!) Skip some tests for PRs and issues in purl-spec that are still open
-
-    #                      PURL TYPE          ISSUE
-    next if ($test_file =~ /conan/);          # spec and tests issues
-    next if ($test_file =~ /rpm/);            # missing namespace in tests (purl-spec#639 - purl-spec#660 PR)
-    next if ($test_file =~ /huggingface/);    # missing namespace - test issue
-
-    note "--- $test_file ---";
-    execute_test($test_file);
-
-}
+find {wanted => \&execute_test, no_chdir => 1}, $purl_tests_dir;
 
 sub test_context {
     my $test = shift;
     return sprintf '%s [%s] %s', $test->{test_type}, $test->{test_group}, $test->{description};
 }
 
-sub find {
-
-    my $directory = shift;
-
-    opendir my $dh, $directory or Carp::croak "Can't open directory: $!";
-
-    return
-        map { -f $_ ? $_ : () }
-        map { $_, -d $_ ? find($_) : () } map { /\A\.\.?\z/ ? () : File::Spec->catfile($directory, $_) } readdir $dh;
-
-}
-
 sub execute_test {
 
-    my $test_file = shift;
+    my $test_file = $_;
+
+    return if -d $test_file;
+    return unless $test_file =~ /\.json/;
+
+    if (my $purl_type = $ENV{PURL_TYPE}) {
+        return unless ($test_file =~ /$purl_type/);
+        diag "Test only $ENV{PURL_TYPE} testcase";
+    }
+
+    note "--- $test_file ---";
 
     open my $fh, '<', $test_file or Carp::croak "Can't open file: $!";
 
@@ -65,8 +46,14 @@ sub execute_test {
 
     TODO: {
 
-            local $TODO = 'SKIP test because in ENCODE always generate well format PURL string'
+            local $TODO = 'Maven - SKIP test because in ENCODE always generate well format PURL string'
                 if ($test->{description} eq 'invalid encoded colon : between scheme and type');
+
+            # (!) Skip some tests for PRs and issues in purl-spec that are still open
+
+            local $TODO = 'RPM - missing namespace in tests'             if ($test_file =~ /rpm/);
+            local $TODO = 'Conan - spec and tests issues'                if ($test_file =~ /conan/);
+            local $TODO = 'Huggingface - missing namespace - test issue' if ($test_file =~ /huggingface/);
 
             execute_parse_test($test)      if $test->{test_type} eq 'parse';
             execute_build_test($test)      if $test->{test_type} eq 'build';

@@ -19,7 +19,9 @@ use constant FALSE => !!0;
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.23_5';
+BEGIN { *VERS:: = *URI::VersionRange:: }
+
+our $VERSION = '2.23_6';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -306,7 +308,7 @@ sub _pairwise {
 __END__
 =head1 NAME
 
-URI::VersionRange - Perl extension for Version Range Specification
+URI::VersionRange - Perl extension for VERS (Version Range Specifier)
 
 =head1 SYNOPSIS
 
@@ -328,6 +330,7 @@ URI::VersionRange - Perl extension for Version Range Specification
   # Parse "vers" string
   $vers = URI::VersionRange->from_string('vers:cpan/>2.00|<2.23');
 
+
   # exported functions
 
   $vers = decode_vers('vers:cpan/>2.00|<2.23');
@@ -337,9 +340,19 @@ URI::VersionRange - Perl extension for Version Range Specification
   say $vers_string; # vers:cpan/>2.00
 
 
+  # alias
+
+  $vers = VERS->new(
+    scheme      => 'cpan',
+    constraints => ['>2.00']
+  );
+
+  $vers = VERS->from_string('vers:cpan/>2.00|<2.23');
+
+
 =head1 DESCRIPTION
 
-A version range specifier (aka. "vers") is a URI string using the C<vers> URI-scheme with this syntax:
+A version range specifier (VERS) is a URI string using the C<vers> URI-scheme with this syntax:
 
   vers:<versioning-scheme>/<version-constraint>|<version-constraint>|...
 
