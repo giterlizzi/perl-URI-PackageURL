@@ -44,6 +44,7 @@ lib/URI/PackageURL/Util.pm
 lib/URI/VersionRange.pm
 lib/URI/VersionRange/App.pm
 lib/URI/VersionRange/Constraint.pm
+lib/URI/VersionRange/Util.pm
 lib/URI/VersionRange/Version.pm
 LICENSE
 Makefile.PL
@@ -56,7 +57,10 @@ t/20-decode.t
 t/30-util.t
 t/40-cli.t
 t/50-version-range.t
+t/60-semver-compare.t
+t/70-vers-from-native.t
 t/90-cpan-distname-info.t
+t/91-cpan-distpath-quailfier.t
 t/99-purl-legacy-test-suite.t
 t/99-purl-tests.t
 t/99-vers-tests.t
