@@ -51,7 +51,6 @@ sub execute_test {
 
             # (!) Skip some tests for PRs and issues in purl-spec that are still open
 
-            local $TODO = 'RPM - missing namespace in tests'             if ($test_file =~ /rpm/);
             local $TODO = 'Conan - spec and tests issues'                if ($test_file =~ /conan/);
             local $TODO = 'Huggingface - missing namespace - test issue' if ($test_file =~ /huggingface/);
 
