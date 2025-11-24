@@ -15,7 +15,7 @@ use Pod::Usage   qw(pod2usage);
 use URI::PackageURL       ();
 use URI::PackageURL::Type ();
 
-our $VERSION = '2.23_6';
+our $VERSION = '2.23_7';
 
 sub cli_error {
     my ($error) = @_;

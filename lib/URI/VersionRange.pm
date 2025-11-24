@@ -21,7 +21,7 @@ use overload '""' => 'to_string', fallback => 1;
 
 BEGIN { *VERS:: = *URI::VersionRange:: }
 
-our $VERSION = '2.23_6';
+our $VERSION = '2.23_7';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -287,9 +287,11 @@ sub contains {
 
 }
 
-sub TO_JSON {
+sub to_hash {
     return {scheme => $_[0]->scheme, constraints => $_[0]->constraints};
 }
+
+sub TO_JSON { shift->to_hash }
 
 sub _pairwise {
 
@@ -402,7 +404,12 @@ This function call is functionally identical to:
 
 =item $vers = URI::VersionRange->new( scheme => STRING, constraints => ARRAY )
 
-Create new B<URI::VersionRange> instance using provided C<vers> components
+Create new B<URI::VersionRange> instance using provided VERS components
+(scheme, constraints).
+
+=item $vers = VERS->new( scheme => STRING, constraints => ARRAY )
+
+Create new B<URI::VersionRange> instance using provided VERS components
 (scheme, constraints).
 
 =item $vers->scheme
@@ -432,9 +439,13 @@ Check if a version is contained within a specific constraint.
 
 See L<URI::VersionRange::Version>.
 
+=item $vers->to_hash
+
+Turn VERS components into a hash reference.
+
 =item $vers->to_string
 
-Stringify C<vers> components.
+Stringify VERS components.
 
 =item $vers->TO_JSON
 

@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.23_6';
+our $VERSION = '2.23_7';
 
 our @EXPORT = qw(
     parse_semver normalize_semver is_semver

@@ -13,10 +13,12 @@ use List::Util qw(first);
 
 use constant DEBUG => $ENV{PURL_DEBUG};
 
-our $VERSION = '2.23_6';
+our $VERSION = '2.23_7';
 
 
-my %ALGO_LENGTH = ('md5' => 32, 'sha1' => 40, 'sha256' => 64, 'sha384' => 96, 'sha512' => 128,);
+my %ALGO_LENGTH = ('md5' => 32, 'sha1' => 40, 'sha256' => 64, 'sha384' => 96, 'sha512' => 128);
+
+my %CACHE = ();
 
 sub new {
 
@@ -32,25 +34,38 @@ sub new {
 
 }
 
+sub share_dir { File::Spec->catfile(dirname(__FILE__), 'resources') }
+
+sub _file_content {
+
+    my $path = shift;
+
+    return unless -e $path;
+
+    open my $fh, '<', $path or Carp::croak "Can't open file: $!";
+    my $content = do { local $/; <$fh> };
+    close $fh;
+
+    return $content;
+
+}
+
 sub _load_definition {
 
     my $purl_type = shift;
 
-    my $def_filename = "$purl_type-definition.json";
-    my $def_file     = File::Spec->catfile(dirname(__FILE__), 'resources', 'types', $def_filename);
+    return $CACHE{$purl_type} if defined $CACHE{$purl_type};
 
-    return unless -e $def_file;
+    my $content = _file_content(File::Spec->catfile(share_dir, 'types', "$purl_type-definition.json"));
+    return unless $content;
 
-    open my $fh, '<', $def_file or Carp::croak "Can't open '$purl_type' definition schema file: $!";
-    my $def_content = do { local $/; <$fh> };
-    close $fh;
+    DEBUG and say STDERR "-- Loaded '$purl_type' definition schema";
 
-    DEBUG and say STDERR "-- Loaded '$def_filename' schema";
+    my $data = eval { decode_json($content) };
+    Carp::croak "Failed to decode '$purl_type' PURL type definition: $@" if $@;
 
-    my $def_data = eval { decode_json($def_content) };
-    Carp::croak "Failed to decode PURL type definition ($def_filename): $@" if $@;
-
-    return $def_data;
+    $CACHE{$purl_type} = $data;
+    return $data;
 
 }
 
@@ -123,7 +138,7 @@ sub normalize {
             $components{namespace} = lc $components{namespace};
         }
 
-        if (grep { $_ eq $components{type} } qw(cpan)) {
+        if ($components{type} eq 'cpan' && $components{namespace} ne 'dist') {
             $components{namespace} = uc $components{namespace};
         }
 
@@ -228,7 +243,7 @@ sub validate {
     }
 
     # PURL type definition validation
-    if ($self->definition) {
+    if (%{$self->definition}) {
 
         # Check components using PURL type definition
 

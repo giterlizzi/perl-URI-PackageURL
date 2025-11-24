@@ -9,6 +9,7 @@ lib/URI/PackageURL.pm
 lib/URI/PackageURL/App.pm
 lib/URI/PackageURL/resources/types/alpm-definition.json
 lib/URI/PackageURL/resources/types/apk-definition.json
+lib/URI/PackageURL/resources/types/bazel-definition.json
 lib/URI/PackageURL/resources/types/bitbucket-definition.json
 lib/URI/PackageURL/resources/types/bitnami-definition.json
 lib/URI/PackageURL/resources/types/cargo-definition.json
@@ -27,6 +28,7 @@ lib/URI/PackageURL/resources/types/golang-definition.json
 lib/URI/PackageURL/resources/types/hackage-definition.json
 lib/URI/PackageURL/resources/types/hex-definition.json
 lib/URI/PackageURL/resources/types/huggingface-definition.json
+lib/URI/PackageURL/resources/types/julia-definition.json
 lib/URI/PackageURL/resources/types/luarocks-definition.json
 lib/URI/PackageURL/resources/types/maven-definition.json
 lib/URI/PackageURL/resources/types/mlflow-definition.json
@@ -70,6 +72,7 @@ t/pod.t
 t/purl/spec/specification-test.json
 t/purl/types/alpm-test.json
 t/purl/types/apk-test.json
+t/purl/types/bazel-test.json
 t/purl/types/bintray-test.json
 t/purl/types/bitbucket-test.json
 t/purl/types/bitnami-test.json
@@ -89,6 +92,7 @@ t/purl/types/golang-test.json
 t/purl/types/hackage-test.json
 t/purl/types/hex-test.json
 t/purl/types/huggingface-test.json
+t/purl/types/julia-test.json
 t/purl/types/luarocks-test.json
 t/purl/types/maven-test.json
 t/purl/types/mlflow-test.json
@@ -111,6 +115,7 @@ t/vers/conan_range_from_native_test.json
 t/vers/conan_version_cmp_test.json
 t/vers/gem_range_from_native_test.json
 t/vers/gentoo_version_cmp_test.json
+t/vers/lexicographic-test.json
 t/vers/maven_version_cmp_test.json
 t/vers/nginx_range_from_native_test.json
 t/vers/npm_range_containment_test.json

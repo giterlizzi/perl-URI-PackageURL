@@ -11,7 +11,7 @@ use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
 
 use constant DEBUG => $ENV{VERS_DEBUG};
 
-our $VERSION = '2.23_6';
+our $VERSION = '2.23_7';
 
 sub load {
 

@@ -17,7 +17,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.23_6';
+our $VERSION = '2.23_7';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:(([/]{1,})?)([A-Za-z][A-Za-z0-9\.\-]*)([/]{1,}).+};
@@ -33,6 +33,8 @@ sub new {
     my $qualifiers = delete $params{qualifiers} // {};
     my $subpath    = delete $params{subpath};
 
+    my $validate = delete $params{validate} // 1;
+
     my $purl_definition = URI::PackageURL::Type->new($type);
 
     my %components = $purl_definition->normalize(
@@ -45,7 +47,7 @@ sub new {
         subpath    => $subpath,
     );
 
-    $purl_definition->validate(%components);
+    $purl_definition->validate(%components) if $validate;
 
     my $self = {components => \%components, definition => $purl_definition};
 
@@ -305,7 +307,7 @@ sub to_hash {
 
     my $self = shift;
 
-    my %hash = map { $_ => $self->{components}->{$_} } qw(scheme type name version namespace qualifiers subpath);
+    my %hash = map { $_ => $self->{components}->{$_} } qw[scheme type name version namespace qualifiers subpath];
     return \%hash;
 
 }
@@ -342,7 +344,7 @@ sub _encode {
     $string = _url_encode($string);
 
     $string =~ s{%3A}{:}g;
-    $string =~ s{%2F}{/}g;
+    $string =~ s{/}{%2F}g;
 
     return $string;
 
@@ -478,7 +480,7 @@ Optional.
 
 =head2 CPAN PURL TYPE
 
-C<cpan> is an official PURL type (L<https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst>)
+C<cpan> is an official PURL type (L<https://github.com/package-url/purl-spec/blob/main/types-doc/cpan-definition.md>)
 
 =over
 
@@ -549,7 +551,12 @@ This function call is functionally identical to:
 =item $purl = URI::PackageURL->new(%components)
 
 Create new B<URI::PackageURL> instance using provided PURL components
-(type, name, version ,etc).
+(type, name, version, etc).
+
+=item $purl = PURL->new(%components)
+
+Create new B<URI::PackageURL> instance using provided PURL components
+(type, name, version, etc).
 
 =item $purl->scheme
 

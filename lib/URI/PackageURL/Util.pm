@@ -7,8 +7,8 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.23_6';
-our @EXPORT  = qw(resources_path purl_to_urls);
+our $VERSION = '2.23_7';
+our @EXPORT  = qw(purl_to_urls);
 
 
 sub purl_to_urls {
@@ -113,7 +113,7 @@ sub _to_cpan_urls {
     my $name           = $purl->name;
     my $version        = $purl->version;
     my $qualifiers     = $purl->qualifiers;
-    my $author         = $purl->namespace ? uc($purl->namespace) : undef;
+    my $author         = $purl->namespace;
     my $file_ext       = $qualifiers->{ext}            || 'tar.gz';
     my $repository_url = $qualifiers->{repository_url} || $purl->definition->default_repository_url;
     my $distpath       = $qualifiers->{distpath};
@@ -129,40 +129,50 @@ sub _to_cpan_urls {
 
     if ($name && $version && $author) {
 
-        my $author_a  = substr($author, 0, 1);
-        my $author_au = substr($author, 0, 2);
-
         $urls->{repository} = "https://metacpan.org/release/$author/$name-$version";
 
-        my $download_base_url = "$repository_url/authors/id";
+        if ($author eq 'dist') {
 
-        if (!$distpath && !$distdir) {
-            $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$name-$version.$file_ext";
+            my ($dist_prefix) = split /\-/, $name;
+            $urls->{download} = "$repository_url/modules/by-module/$dist_prefix/$name-$version.$file_ext";
+
         }
+        else {
 
-        if ($distpath && !$distdir) {
+            my $author_a  = substr($author, 0, 1);
+            my $author_au = substr($author, 0, 2);
 
-            $distpath =~ s{^/}{};
-            $distpath =~ s{^CPAN/}{};
-            $distpath =~ s{^id/}{};
-            $distpath =~ s{^authors/id/}{};
+            my $download_base_url = "$repository_url/authors/id";
 
-            if ($distpath !~ /^([A-Z]{1})\/([A-Z]{2})/) {
+            if (!$distpath && !$distdir) {
+                $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$name-$version.$file_ext";
+            }
 
-                my @parts     = split '/', $distpath;
-                my $author_a  = substr($parts[0], 0, 1);
-                my $author_au = substr($parts[0], 0, 2);
+            if ($distpath && !$distdir) {
 
-                $distpath = join '/', $author_a, $author_au, $distpath;
+                $distpath =~ s{^/}{};
+                $distpath =~ s{^CPAN/}{};
+                $distpath =~ s{^id/}{};
+                $distpath =~ s{^authors/id/}{};
+
+                if ($distpath !~ /^([A-Z]{1})\/([A-Z]{2})/) {
+
+                    my @parts     = split '/', $distpath;
+                    my $author_a  = substr($parts[0], 0, 1);
+                    my $author_au = substr($parts[0], 0, 2);
+
+                    $distpath = join '/', $author_a, $author_au, $distpath;
+
+                }
+
+                $urls->{download} = "$download_base_url/$distpath";
 
             }
 
-            $urls->{download} = "$download_base_url/$distpath";
+            if ($distdir && !$distpath) {
+                $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$distdir/$name-$version.$file_ext";
+            }
 
-        }
-
-        if ($distdir && !$distpath) {
-            $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$distdir/$name-$version.$file_ext";
         }
 
     }
@@ -482,9 +492,9 @@ C<cpan>, C<docker>, C<gem>, C<github>, C<gitlab>, C<luarocks>, C<maven>, C<npm>,
   print Dumper($urls);
 
   # $VAR1 = {
-  #           'repository' => 'https://metacpan.org/release/GDT/URI-PackageURL-2.23',
-  #           'download' => 'http://www.cpan.org/authors/id/G/GD/GDT/URI-PackageURL-2.23.tar.gz'
-  #         };
+  #   'repository' => 'https://metacpan.org/release/GDT/URI-PackageURL-2.23',
+  #   'download'   => 'http://www.cpan.org/authors/id/G/GD/GDT/URI-PackageURL-2.23.tar.gz'
+  # };
 
 =back
 
