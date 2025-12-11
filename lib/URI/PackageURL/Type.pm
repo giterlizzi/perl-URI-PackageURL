@@ -312,10 +312,6 @@ sub validate {
 TYPE: for ($purl_type) {
 
         if (/conan/) {
-            if ($components{namespace} && !defined $components{qualifiers}->{channel}) {
-                Carp::croak "Invalid PURL: Conan without 'channel' qualifier";
-            }
-
             if (!$components{namespace} && defined $components{qualifiers}->{channel}) {
                 Carp::croak "Invalid PURL: Conan 'channel' qualifier without 'namespace'";
             }

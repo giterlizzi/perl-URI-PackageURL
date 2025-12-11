@@ -51,9 +51,7 @@ sub execute_test {
 
             # (!) Skip some tests for PRs and issues in purl-spec that are still open
 
-            local $TODO = 'Conan - spec and tests issues'                if ($test_file =~ /conan/);
             local $TODO = 'Huggingface - missing namespace - test issue' if ($test_file =~ /huggingface/);
-            local $TODO = 'Bazel - some issue in test cases'             if ($test_file =~ /bazel/);
 
             execute_parse_test($test)      if $test->{test_type} eq 'parse';
             execute_build_test($test)      if $test->{test_type} eq 'build';

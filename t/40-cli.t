@@ -75,7 +75,6 @@ my @invalid = (
     'pkg:n&g?inx/nginx@0.8.9',
     'pkg:maven/@1.3.4',
     'pkg:npm/myartifact@1.0.0?in%20production=true',
-    'pkg:conan/bincrafters/cctz@2.3',
     'pkg:hackage',
     'pkg%3Amaven/org.apache.commons/io',
 );
