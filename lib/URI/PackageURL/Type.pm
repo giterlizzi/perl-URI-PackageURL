@@ -138,6 +138,8 @@ sub normalize {
             $components{namespace} = lc $components{namespace};
         }
 
+        # The namespace is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
+
         if ($components{type} eq 'cpan' && $components{namespace} ne 'dist') {
             $components{namespace} = uc $components{namespace};
         }
@@ -337,14 +339,6 @@ TYPE: for ($purl_type) {
 
                 last TYPE;
 
-            }
-
-            # TODO: Remove when the new CPAN PURL type is merged
-            # The namespace is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
-
-            unless (defined($components{namespace})) {
-                Carp::croak
-                    "Invalid PURL: The CPAN 'namespace' is required and must contain the CPAN ID of the author/publisher";
             }
 
             if ($components{name} =~ /\:/) {
