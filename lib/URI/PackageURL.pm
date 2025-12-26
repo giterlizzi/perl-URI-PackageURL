@@ -446,6 +446,10 @@ package managers, packaging conventions, tools, APIs and databases.
 
 L<https://github.com/package-url/purl-spec>
 
+L<TC54 - Software and system transparency|https://tc54.org/>
+
+L<ECMA-427 - Package-URL (PURL) specification|https://ecma-international.org/publications-and-standards/standards/ecma-427/>
+
 A purl is a URL composed of seven components:
 
     scheme:type/namespace/name@version?qualifiers#subpath

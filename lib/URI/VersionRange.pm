@@ -373,6 +373,8 @@ of the intervals defined by these C<version-constraint>.
 
 L<https://github.com/package-url/vers-spec>
 
+L<TC54 - Software and system transparency|https://tc54.org/>
+
 
 =head2 FUNCTIONAL INTERFACE
 
