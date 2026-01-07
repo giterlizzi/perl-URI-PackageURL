@@ -34,7 +34,7 @@ sub new {
 
 }
 
-sub share_dir { File::Spec->catfile(dirname(__FILE__), 'resources') }
+sub definition_dir { File::Spec->catfile(dirname(__FILE__), 'types') }
 
 sub _file_content {
 
@@ -56,7 +56,7 @@ sub _load_definition {
 
     return $CACHE{$purl_type} if defined $CACHE{$purl_type};
 
-    my $content = _file_content(File::Spec->catfile(share_dir, 'types', "$purl_type-definition.json"));
+    my $content = _file_content(File::Spec->catfile(definition_dir, "$purl_type-definition.json"));
     return unless $content;
 
     DEBUG and say STDERR "-- Loaded '$purl_type' definition schema";
