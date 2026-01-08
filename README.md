@@ -1,10 +1,10 @@
 [![Release](https://img.shields.io/github/release/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/releases) [![Actions Status](https://github.com/giterlizzi/perl-URI-PackageURL/workflows/linux/badge.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/actions) [![License](https://img.shields.io/github/license/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL) [![Starts](https://img.shields.io/github/stars/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL) [![Forks](https://img.shields.io/github/forks/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL) [![Issues](https://img.shields.io/github/issues/giterlizzi/perl-URI-PackageURL.svg)](https://github.com/giterlizzi/perl-URI-PackageURL/issues) [![Coverage Status](https://coveralls.io/repos/github/giterlizzi/perl-URI-PackageURL/badge.svg)](https://coveralls.io/github/giterlizzi/perl-URI-PackageURL)
 
-# URI::PackageURL - Perl extension for Package URL (aka "purl")
+# URI::PackageURL - Perl extension for PURL (Package URL) and VERS (Version Range)
 
 ## Synopsis
 
-```.pl
+```perl
 use URI::PackageURL;
 
 # OO-interface
@@ -65,7 +65,7 @@ $ wget $(purl-tool pkg:cpan/GDT/URI-PackageURL@2.23 --download-url)
 
 Use "purl" string in your shell-scripts:
 
-```.bash
+```bash
 #!bash
 
 set -e 
@@ -96,6 +96,50 @@ $ purl-tool --type cpan \
 ```
 
 
+Validate a PURL string:
+
+```bash
+if $(purl-tool $PURL_STRING --validate -q); then
+    echo "PURL string is valid"
+else
+    echo "PURL string is not valid"
+fi
+```
+
+
+Display information about provided PURL type (allowed components, repository,
+examples, etc.):
+
+```console
+$ purl-tool --info rpm
+```
+
+
+## vers-tool a CLI for URI::VersionRange module
+
+Decode a "vers" string:
+
+```console
+$ vers-tool "vers:cpan/1.00|>=2.00|<5.00" | jq
+```
+
+Check if a version is contained within a range:
+
+```console
+$ vers-tool "vers:cpan/1.00|>=2.00|<5.00" --contains "2.20"
+```
+
+Humanize "vers":
+
+```console
+$ vers-tool "vers:cpan/1.00|>=2.00|<5.00" --human-readable
+
+cpan
+- equal 1.00
+- greater than or equal 2.00
+- less than 5.00
+```
+
 ## Install
 
 Using Makefile.PL:
@@ -114,11 +158,14 @@ Using App::cpanminus:
 
 ## Documentation
 
- - `perldoc URI::PackageURL`
- - https://metacpan.org/release/URI-PackageURL
- - https://github.com/package-url/purl-spec
+- `perldoc URI::PackageURL`
+- `perldoc URI::VersionRange`
+- https://metacpan.org/release/URI-PackageURL
+- Specification: https://github.com/package-url/purl-spec
+- TC54 - Software and system transparency: https://tc54.org
+- ECMA-427 - Package-URL (PURL) specification: https://ecma-international.org/publications-and-standards/standards/ecma-427
 
 
 ## Copyright
 
- - Copyright 2022-2025 © Giuseppe Di Terlizzi
+- Copyright 2022-2025 © Giuseppe Di Terlizzi
