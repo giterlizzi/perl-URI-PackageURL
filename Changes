@@ -1,6 +1,6 @@
 Change history for URI-PackageURL
 
-?.?? 2025-??-??
+2.?? 2026-01-??
     - Imported all PURL type definition files from https://package-url/purl-spec
     - Added "URI::PackageURL::Type" helper class for normalize components,
       validation and load the using PURL type definition schema file, generate
@@ -18,6 +18,8 @@ Change history for URI-PackageURL
       if there are unknown qualifiers.
     - Added "URI::VersionRange->from_native" method
     - Added "PURL" and "VERS" package alias for "URI::PackageURL" and "URI::VersionRange"
+    - Sync with PURL v1.0.0 spec
+    - Sync with VERS main spec
 
 2.23 2025-07-11
     - Updated CPAN PURL type spec
