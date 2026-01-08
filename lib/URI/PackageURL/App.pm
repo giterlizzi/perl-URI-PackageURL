@@ -15,7 +15,7 @@ use Pod::Usage   qw(pod2usage);
 use URI::PackageURL       ();
 use URI::PackageURL::Type ();
 
-our $VERSION = '2.23_7';
+our $VERSION = '2.23_8';
 
 sub cli_error {
     my ($error) = @_;
@@ -232,6 +232,17 @@ VERSION
 
 }
 
+sub _md_to_pod {
+
+    my $text = shift;
+
+    $text =~ s/(``([^``]*)``)/C<$2>/gm;
+    $text =~ s/(`([^`]*)`)/C<$2>/gm;
+
+    return $text;
+
+}
+
 sub definition_help {
 
     my $type = shift;
@@ -259,7 +270,7 @@ sub definition_help {
     $purl_syntax .= '/E<lt>namespaceE<gt>' if $have_ns;
     $purl_syntax .= '/E<lt>nameE<gt>@E<lt>versionE<gt>?E<lt>qualifiersE<gt>#E<lt>subpathE<gt>';
 
-    my $man = <<EOF;
+    my $man = <<"MAN";
 =head1 NAME
 
 $type - $type_name
@@ -274,7 +285,7 @@ The structure of a PURL for this package type is:
 
 C<$purl_syntax>
 
-EOF
+MAN
 
     foreach my $component (qw[namespace name version subpath]) {
 
@@ -288,7 +299,7 @@ EOF
         my $note                 = $definition->component_note($component);
 
         $man .= sprintf "=head2 %s\n\n", ucfirst $component;
-        $man .= "=over\n\n";
+        $man .= "=over 2\n\n";
 
         if ($requirement) {
             $man .= sprintf "=item B<Requirement>: %s\n\n", ucfirst($requirement);
@@ -305,7 +316,7 @@ EOF
         if (@{$normalization_rules}) {
 
             $man .= "=item B<Normalization Rules>:\n\n";
-            $man .= "=over\n\n";
+            $man .= "=over 2\n\n";
 
             foreach (@{$normalization_rules}) {
                 $man .= sprintf "=item * %s\n\n", $_;
@@ -322,14 +333,14 @@ EOF
         $man .= "=back\n\n";
 
         if ($note) {
-            $man .= sprintf "$note\n\n";
+            $man .= sprintf "%s\n\n", _md_to_pod($note);
         }
     }
 
     if (@{$qualifiers_definition}) {
 
         $man .= "=head2 Qualifiers\n\n";
-        $man .= "=over\n\n";
+        $man .= "=over 2\n\n";
 
         foreach my $qualifier (@{$qualifiers_definition}) {
 
@@ -347,7 +358,7 @@ EOF
                 $man .= sprintf "Default value: %s\n\n", $default_value;
             }
 
-            $man .= sprintf "%s\n\n", $qualifier->{description};
+            $man .= sprintf "%s\n\n", _md_to_pod($qualifier->{description});
 
         }
 
@@ -367,7 +378,7 @@ EOF
         $man .= "=back\n\n";
 
         if (my $note = $repository->{note}) {
-            $man .= sprintf "$note\n\n";
+            $man .= sprintf "%s\n\n", _md_to_pod($note);
         }
 
     }
@@ -375,7 +386,7 @@ EOF
     if (@{$examples}) {
 
         $man .= "=head1 EXAMPLES\n\n";
-        $man .= "=over\n\n";
+        $man .= "=over 2\n\n";
 
         foreach (@{$examples}) {
             $man .= sprintf "=item * %s\n\n", $_;
@@ -391,7 +402,7 @@ EOF
     }
 
     $man .= "=head1 REFERENCES\n\n";
-    $man .= "=over\n\n";
+    $man .= "=over 2\n\n";
 
     $man .= sprintf "=item * %s schema ID, L<%s>\n\n", $type_name, $schema_id;
 
