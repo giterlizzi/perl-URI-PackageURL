@@ -13,7 +13,7 @@ use List::Util qw(first);
 
 use constant DEBUG => $ENV{PURL_DEBUG};
 
-our $VERSION = '2.23_7';
+our $VERSION = '2.23_8';
 
 
 my %ALGO_LENGTH = ('md5' => 32, 'sha1' => 40, 'sha256' => 64, 'sha384' => 96, 'sha512' => 128);
@@ -526,7 +526,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 AUTHOR
 
-=over 4
+=over
 
 =item * Giuseppe Di Terlizzi <gdt@cpan.org>
 

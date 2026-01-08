@@ -17,7 +17,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.23_7';
+our $VERSION = '2.23_8';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:(([/]{1,})?)([A-Za-z][A-Za-z0-9\.\-]*)([/]{1,}).+};
@@ -363,6 +363,9 @@ sub _url_decode {
 1;
 
 __END__
+
+=encoding utf-8
+
 =head1 NAME
 
 URI::PackageURL - Perl extension for PURL (Package URL)
@@ -458,7 +461,7 @@ Components are separated by a specific character for unambiguous parsing.
 
 The definition for each components is:
 
-=over
+=over 2
 
 =item * "scheme": this is the URL scheme with the constant value of "pkg".
 One of the primary reason for this single scheme is to facilitate the future
@@ -486,7 +489,7 @@ Optional.
 
 C<cpan> is an official PURL type (L<https://github.com/package-url/purl-spec/blob/main/types-doc/cpan-definition.md>)
 
-=over
+=over 2
 
 =item * The default repository is C<https://www.cpan.org/>.
 
@@ -528,9 +531,9 @@ B<NOTE>: This is only to be used for compatibility purposes (it will be removed 
 
 They are exported by default:
 
-=over
+=head3 B<encode_purl>
 
-=item $purl_string = encode_purl(%purl_components)
+    $purl_string = encode_purl(%purl_components)
 
 Converts the given PURL components to PURL string. Croaks on error.
 
@@ -538,7 +541,9 @@ This function call is functionally identical to:
 
     $purl_string = URI::PackageURL->new(%purl_components)->to_string;
 
-=item $purl_components = decode_purl($purl_string)
+=head3 B<decode_purl>
+
+    $purl_components = decode_purl($purl_string)
 
 Converts the given PURL string to PURL components. Croaks on error.
 
@@ -546,80 +551,74 @@ This function call is functionally identical to:
 
     $purl = URI::PackageURL->from_string($purl_string);
 
-=back
-
 =head2 OBJECT-ORIENTED INTERFACE
 
-=over
+=head3 B<new>
 
-=item $purl = URI::PackageURL->new(%components)
+    $purl = URI::PackageURL->new(%components)
+    $purl = PURL->new(%components)
 
-Create new B<URI::PackageURL> instance using provided PURL components
+Create new L<URI::PackageURL> instance using provided PURL components
 (type, name, version, etc).
 
-=item $purl = PURL->new(%components)
-
-Create new B<URI::PackageURL> instance using provided PURL components
-(type, name, version, etc).
-
-=item $purl->scheme
+=head3 B<scheme>
 
 The scheme is a constant with the value "pkg".
 
-=item $purl->type
+=head3 B<type>
 
 The package "type" or package "protocol" such as cpan, maven, npm, nuget, gem, pypi, etc.
 
-=item $purl->namespace
+=head3 B<namespace>
 
 Some name prefix such as a Maven groupid, a Docker image owner, a GitHub user or
 organization. Optional and type-specific.
 
-=item $purl->name
+=head3 B<name>
 
 The "name" of the package.
 
-=item $purl->version
+=head3 B<version>
 
 The "version" of the package.
 
-=item $purl->qualifiers
+=head3 B<qualifiers>
 
 Extra qualifying data for a package such as an OS, architecture, a distro, etc.
 
-=item $purl->subpath
+=head3 B<subpath>
 
 Extra subpath within a package, relative to the package root.
 
-=item $purl->to_string
+=head3 B<to_string>
 
 Stringify Package URL components.
 
-=item $purl->to_urls
+=head3 B<to_urls>
 
 Return B<download> and/or B<repository> URLs.
 
-=item $purl->download_url
+=head3 B<download_url>
 
 Return B<download> URL.
 
 See C<purl_to_urls> in L<URI::PackageURL::Util>.
 
-=item $purl->repository_url
+=head3 B<repository_url>
 
 Return B<repository> URL.
 
 See C<purl_to_urls> in L<URI::PackageURL::Util>.
 
-=item $purl->to_hash
+=head3 B<to_hash>
 
 Turn PURL components into a hash reference.
 
-=item $purl->definition
+=head3 B<definition>
 
 Return L<URI::PackageURL::Type> instance.
 
-=item $purl->clone
+=head3 B<clone>
 
 Clone PURL object.
 
@@ -630,7 +629,7 @@ Clone PURL object.
     say $cloned; # pkg:cpan/GDT/URI-PackageURL@1.00
     say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.23
 
-=item $purl->TO_JSON
+=head3 B<TO_JSON>
 
 Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Cpanel::JSON::XS>, L<Mojo::JSON>, etc).
 
@@ -648,11 +647,13 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Cpanel::JSO
     #    "version" : "2.23"
     # }
 
-=item $purl = URI::PackageURL->from_string($purl_string);
+=head3 B<from_string>
 
-Converts the given PURL string to PURL components. Croaks on error.
+    $purl = URI::PackageURL->from_string($purl_string);
+    $purl = PURL->from_string($purl_string);
 
-=back
+Converts the given PURL string to PURL components and return L<URI::PackageURL>
+instance. Croaks on error.
 
 
 =head1 SUPPORT
@@ -675,7 +676,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 AUTHOR
 
-=over 4
+=over
 
 =item * Giuseppe Di Terlizzi <gdt@cpan.org>
 

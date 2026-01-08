@@ -11,7 +11,7 @@ use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
 
 use constant DEBUG => $ENV{VERS_DEBUG};
 
-our $VERSION = '2.23_7';
+our $VERSION = '2.23_8';
 
 sub load {
 
@@ -83,6 +83,9 @@ package    # hide from pause
 1;
 
 __END__
+
+=encoding utf-8
+
 =head1 NAME
 
 URI::VersionRange::Version - Version scheme helper class
@@ -117,25 +120,28 @@ This is a base class for the version scheme helper.
 
 =head2 OBJECT-ORIENTED INTERFACE
 
-=over
+=head3 B<new>
 
-=item $v = URI::VersionRange::Version->new( $value )
+    $v = URI::VersionRange::Version->new( $value )
 
 Create new B<URI::VersionRange::Version> instance using provided version C<value>.
 
-=item $v->compare
+=head3 B<compare>
+
+    $v->compare
 
 Compare the version
 
-=item $v->from_native( $native_range )
+=head3 B<from_native>
+
+    $v->from_native( $native_range )
 
 Convert the native range of the scheme into a VERS string
 
-=back
 
 =head2 HOW TO CREATE A NEW SCHEME COMPARATOR CLASS
 
-=over
+=over 2
 
 =item * Create a new package using the naming convention C<< URI::VersionRange::Scheme::<scheme> >>
 by extending L<URI::VersionRange::Version>.
@@ -208,7 +214,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 AUTHOR
 
-=over 4
+=over
 
 =item * Giuseppe Di Terlizzi <gdt@cpan.org>
 

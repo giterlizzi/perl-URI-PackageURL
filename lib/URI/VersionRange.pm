@@ -21,7 +21,7 @@ use overload '""' => 'to_string', fallback => 1;
 
 BEGIN { *VERS:: = *URI::VersionRange:: }
 
-our $VERSION = '2.23_7';
+our $VERSION = '2.23_8';
 our @EXPORT  = qw(encode_vers decode_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
@@ -308,6 +308,9 @@ sub _pairwise {
 1;
 
 __END__
+
+=encoding utf-8
+
 =head1 NAME
 
 URI::VersionRange - Perl extension for VERS (Version Range Specifier)
@@ -380,9 +383,9 @@ L<TC54 - Software and system transparency|https://tc54.org/>
 
 They are exported by default:
 
-=over
+=head3 B<encode_vers>
 
-=item $vers_string = encode_vers(%params);
+    $vers_string = encode_vers(%params);
 
 Converts the given C<vers> components to "vers" string. Croaks on error.
 
@@ -390,7 +393,9 @@ This function call is functionally identical to:
 
     $vers_string = URI::VersionRange->new(%params)->to_string;
 
-=item $vers = decode_vers($vers_string);
+=head3 B<decode_vers>
+
+    $vers = decode_vers($vers_string);
 
 Converts the given "vers" string to L<URI::VersionRange> object. Croaks on error.
 
@@ -398,32 +403,33 @@ This function call is functionally identical to:
 
     $vers = URI::VersionRange->from_string($vers_string);
 
-=back
 
 =head2 OBJECT-ORIENTED INTERFACE
 
-=over
+=head3 B<new>
 
-=item $vers = URI::VersionRange->new( scheme => STRING, constraints => ARRAY )
+    $vers = URI::VersionRange->new( scheme => STRING, constraints => ARRAY )
+    $vers = VERS->new( scheme => STRING, constraints => ARRAY )
 
-Create new B<URI::VersionRange> instance using provided VERS components
+Create new L<URI::VersionRange> instance using provided VERS components
 (scheme, constraints).
 
-=item $vers = VERS->new( scheme => STRING, constraints => ARRAY )
+=head3 B<scheme>
 
-Create new B<URI::VersionRange> instance using provided VERS components
-(scheme, constraints).
-
-=item $vers->scheme
+    $vers->scheme
 
 By convention the versioning scheme should be the same as the L<URI::PackageURL>
 package C<type> for a given package ecosystem.
 
-=item $vers->constraints
+=head3 B<constraints>
+
+    $vers->constraints
 
 C<constraints> is ARRAY of L<URI::VersionRange::Constraint> object.
 
-=item $vers->contains($version)
+=head3 B<contains>
+
+    $vers->contains($version)
 
 Check if a version is contained within a range
 
@@ -435,33 +441,58 @@ Check if a version is contained within a range
 
 See L<URI::VersionRange::Version>.
 
-=item $vers->constraint_contains
+=head3 B<constraint_contains>
+
+    $vers->constraint_contains
 
 Check if a version is contained within a specific constraint.
 
 See L<URI::VersionRange::Version>.
 
-=item $vers->to_hash
+=head3 B<to_hash>
+
+    $vers->to_hash
 
 Turn VERS components into a hash reference.
 
-=item $vers->to_string
+=head3 B<to_string>
+
+    $vers->to_string
 
 Stringify VERS components.
 
-=item $vers->TO_JSON
+=head3 B<TO_JSON>
+
+    $vers->TO_JSON
 
 Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>, etc).
 
     use Mojo::JSON qw(encode_json);
 
-    say encode_json($vers);  # {"constraints":[{"comparator":">","version":"2.00"},{"comparator":"<","version":"2.23"}],"scheme":"cpan"}
+    say encode_json($vers);
 
-=item $vers = URI::VersionRange->from_string($vers_string);
+    # {
+    #   "constraints": [
+    #     {
+    #       "comparator": ">",
+    #       "version": "2.00"
+    #     },
+    #     {
+    #       "comparator": "<",
+    #       "version": "2.23"
+    #     }
+    #   ],
+    #   "scheme": "cpan"
+    # }
 
-Converts the given "vers" string to L<URI::VersionRange> object. Croaks on error.
 
-=back
+=head3 B<from_string>
+
+    $vers = URI::VersionRange->from_string($vers_string);
+    $vers = VERS->from_string($vers_string);
+
+Converts the given "vers" string to VERS components and return L<URI::VersionRange>
+instance. Croaks on error.
 
 
 =head1 SUPPORT
@@ -484,7 +515,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 AUTHOR
 
-=over 4
+=over
 
 =item * Giuseppe Di Terlizzi <gdt@cpan.org>
 

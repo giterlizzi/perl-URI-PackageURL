@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.23_7';
+our $VERSION = '2.23_8';
 
 our @EXPORT = qw(
     parse_semver normalize_semver is_semver
@@ -587,6 +587,9 @@ sub generic_version_compare {
 1;
 
 __END__
+
+=encoding utf-8
+
 =head1 NAME
 
 URI::VersionRange::Util - Utility for URI::VersionRange
@@ -684,7 +687,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 AUTHOR
 
-=over 4
+=over
 
 =item * Giuseppe Di Terlizzi <gdt@cpan.org>
 

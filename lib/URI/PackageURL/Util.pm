@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.23_7';
+our $VERSION = '2.23_8';
 our @EXPORT  = qw(purl_to_urls);
 
 
@@ -518,7 +518,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 AUTHOR
 
-=over 4
+=over
 
 =item * Giuseppe Di Terlizzi <gdt@cpan.org>
 
