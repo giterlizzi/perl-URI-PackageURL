@@ -26,6 +26,7 @@ purl-tool - Package URL tool
 
     Options:
           --info TYPE               Display information about provided PURL type
+          --list                    Display known PURL type
           --help                    Brief help message
           --man                     Full documentation
           -v                        Print version

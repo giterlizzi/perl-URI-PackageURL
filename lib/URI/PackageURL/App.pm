@@ -14,6 +14,7 @@ use Pod::Usage   qw(pod2usage);
 
 use URI::PackageURL       ();
 use URI::PackageURL::Type ();
+use URI::PackageURL::Util qw(purl_types);
 
 our $VERSION = '2.23_8';
 
@@ -49,6 +50,7 @@ sub run {
             validate
             quiet|q
             info=s
+            list
 
             type=s
             namespace=s
@@ -92,6 +94,10 @@ VERSION
 
     if (defined $options{info}) {
         return definition_help(lc $options{info});
+    }
+
+    if (defined $options{list}) {
+        return purl_list();
     }
 
     if (defined $options{type}) {
@@ -242,6 +248,55 @@ sub _md_to_pod {
     return $text;
 
 }
+
+sub purl_list {
+
+    my @types = purl_types();
+
+    my $pattern = "%15s | %10s | %10s | %10s | %10s | %s";
+
+    say sprintf $pattern, 'TYPE', 'NAMESPACE', 'NAME', 'VERSION', 'SUBPATH', 'QUALIFIERS';
+
+    say sprintf "%s-|-%s-|-%s-|-%s-|-%s-|-%s", '-' x 15, '-' x 10, '-' x 10, '-' x 10, '-' x 10, '-' x 10;
+
+    for my $type (@types) {
+
+        my $definition = URI::PackageURL::Type->new($type);
+
+        my $namespace  = '-';
+        my $name       = '-';
+        my $version    = '-';
+        my $subpath    = '-';
+        my $qualifiers = '-';
+
+        if ($definition->component_have_definition('namespace')) {
+            $namespace = $definition->component_requirement('namespace') // '-';
+        }
+
+        if ($definition->component_have_definition('name')) {
+            $name = $definition->component_requirement('name') // '-';
+        }
+
+        if ($definition->component_have_definition('version')) {
+            $version = $definition->component_requirement('version') // '-';
+        }
+
+        if ($definition->component_have_definition('subpath')) {
+            $subpath = $definition->component_requirement('subpath') // '-';
+        }
+
+        if (@{$definition->qualifiers_definition}) {
+            $qualifiers = join ", ", map { $_->{key} } @{$definition->qualifiers_definition};
+        }
+
+        say sprintf $pattern, $type, $namespace, $name, $version, $subpath, $qualifiers;
+
+    }
+
+    return 0;
+
+}
+
 
 sub definition_help {
 

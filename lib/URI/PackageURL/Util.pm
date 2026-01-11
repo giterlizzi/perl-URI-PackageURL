@@ -5,11 +5,34 @@ use strict;
 use utf8;
 use warnings;
 
-use Exporter qw(import);
+use File::Spec;
+use File::Basename qw(dirname basename);
+use Exporter       qw(import);
 
 our $VERSION = '2.23_8';
-our @EXPORT  = qw(purl_to_urls);
+our @EXPORT  = qw(purl_to_urls purl_types);
 
+sub purl_types {
+
+    my @list = ();
+
+    my $spec_dir = File::Spec->catfile(dirname(__FILE__), 'types');
+
+    opendir(my $dh, $spec_dir) or Carp::croak "Can't open spec dir: $!";
+
+    while (my $file = readdir $dh) {
+        next unless -f File::Spec->catfile($spec_dir, $file);
+        $file =~ s/\-definition\.json//;
+        push @list, $file;
+    }
+
+    closedir $dh;
+
+    @list = sort @list;
+
+    return wantarray ? @list : \@list;
+
+}
 
 sub purl_to_urls {
 
