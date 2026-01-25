@@ -62,18 +62,18 @@ purl-tool - Package URL tool
 
     Parse the given Package URL string and return JSON and send the STDOUT to jq:
 
-        purl-tool pkg:cpan/GDT/URI-PackageURL@2.23 --json | jq
+        purl-tool pkg:cpan/GDT/URI-PackageURL@2.24 --json | jq
 
     Download the package from the repository using PURL string:
 
-        wget $(purl-tool pkg:cpan/GDT/URI-PackageURL@2.23 --download-url)
+        wget $(purl-tool pkg:cpan/GDT/URI-PackageURL@2.24 --download-url)
 
     Create a canonical PURL string
 
         purl-tool --type cpan \
                   --namespace GDT \
                   --name URI-PackageURL \
-                  --version 2.23
+                  --version 2.24
 
     Validate a PURL string:
 
@@ -87,6 +87,10 @@ purl-tool - Package URL tool
     examples, etc.):
 
         purl-tool --info rpm
+
+    Display all known PURL types:
+
+        purl-tool --list
 
 
 =head1 DESCRIPTION
@@ -135,18 +139,18 @@ Optional.
 
 Parse the given PURL string and return JSON and send the STDOUT to L<jq>:
 
-    purl-tool pkg:cpan/GDT/URI-PackageURL@2.23 --json | jq
+    purl-tool pkg:cpan/GDT/URI-PackageURL@2.24 --json | jq
 
 Download the package from the repository using Package URL string:
 
-    wget $(purl-tool pkg:cpan/GDT/URI-PackageURL@2.23 --download-url)
+    wget $(purl-tool pkg:cpan/GDT/URI-PackageURL@2.24 --download-url)
 
 Create a canonical Package URL string:
 
     purl-tool --type cpan \
               --namespace GDT \
               --name URI-PackageURL \
-              --version 2.23
+              --version 2.24
 
 Display information about provided PURL type (allowed components, repository,
 examples, etc.):
