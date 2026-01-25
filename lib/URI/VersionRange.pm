@@ -495,6 +495,36 @@ Converts the given "vers" string to VERS components and return L<URI::VersionRan
 instance. Croaks on error.
 
 
+=head3 B<from_native>
+
+Converts the specified native range string and returns and return L<URI::VersionRange>
+instance.
+
+    $vers = URI::VersionRange->from_native('npm', '~1.6.5 || >=1.7.2');
+
+Supported native range scheme:
+
+=over
+
+=item conan
+
+=item gem
+
+=item nginx
+
+=item npm
+
+=item nuget
+
+=item raku
+
+=item semver
+
+=back
+
+For other schemes, C<native_range_to_vers> will attempt to convert the native
+range string to a VERS string, but this may not work perfectly.
+
 =head1 SUPPORT
 
 =head2 Bugs / Feature Requests
