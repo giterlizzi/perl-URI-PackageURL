@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter qw(import);
 
-our $VERSION = '2.23_8';
+our $VERSION = '2.24';
 
 our @EXPORT = qw(
     parse_semver normalize_semver is_semver
@@ -696,7 +696,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 LICENSE AND COPYRIGHT
 
-This software is copyright (c) 2022-2025 by Giuseppe Di Terlizzi.
+This software is copyright (c) 2022-2026 by Giuseppe Di Terlizzi.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

@@ -9,7 +9,7 @@ use File::Spec;
 use File::Basename qw(dirname basename);
 use Exporter       qw(import);
 
-our $VERSION = '2.23_8';
+our $VERSION = '2.24';
 our @EXPORT  = qw(purl_to_urls purl_types);
 
 sub purl_types {
@@ -136,7 +136,7 @@ sub _to_cpan_urls {
     my $name           = $purl->name;
     my $version        = $purl->version;
     my $qualifiers     = $purl->qualifiers;
-    my $author         = $purl->namespace;
+    my $author         = $purl->namespace // $qualifiers->{author};
     my $file_ext       = $qualifiers->{ext}            || 'tar.gz';
     my $repository_url = $qualifiers->{repository_url} || $purl->definition->default_repository_url;
     my $distpath       = $qualifiers->{distpath};
@@ -154,48 +154,38 @@ sub _to_cpan_urls {
 
         $urls->{repository} = "https://metacpan.org/release/$author/$name-$version";
 
-        if ($author eq 'dist') {
+        my $author_a  = substr($author, 0, 1);
+        my $author_au = substr($author, 0, 2);
 
-            my ($dist_prefix) = split /\-/, $name;
-            $urls->{download} = "$repository_url/modules/by-module/$dist_prefix/$name-$version.$file_ext";
+        my $download_base_url = "$repository_url/authors/id";
+
+        if (!$distpath && !$distdir) {
+            $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$name-$version.$file_ext";
+        }
+
+        if ($distpath && !$distdir) {
+
+            $distpath =~ s{^/}{};
+            $distpath =~ s{^CPAN/}{};
+            $distpath =~ s{^id/}{};
+            $distpath =~ s{^authors/id/}{};
+
+            if ($distpath !~ /^([A-Z]{1})\/([A-Z]{2})/) {
+
+                my @parts     = split '/', $distpath;
+                my $author_a  = substr($parts[0], 0, 1);
+                my $author_au = substr($parts[0], 0, 2);
+
+                $distpath = join '/', $author_a, $author_au, $distpath;
+
+            }
+
+            $urls->{download} = "$download_base_url/$distpath";
 
         }
-        else {
 
-            my $author_a  = substr($author, 0, 1);
-            my $author_au = substr($author, 0, 2);
-
-            my $download_base_url = "$repository_url/authors/id";
-
-            if (!$distpath && !$distdir) {
-                $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$name-$version.$file_ext";
-            }
-
-            if ($distpath && !$distdir) {
-
-                $distpath =~ s{^/}{};
-                $distpath =~ s{^CPAN/}{};
-                $distpath =~ s{^id/}{};
-                $distpath =~ s{^authors/id/}{};
-
-                if ($distpath !~ /^([A-Z]{1})\/([A-Z]{2})/) {
-
-                    my @parts     = split '/', $distpath;
-                    my $author_a  = substr($parts[0], 0, 1);
-                    my $author_au = substr($parts[0], 0, 2);
-
-                    $distpath = join '/', $author_a, $author_au, $distpath;
-
-                }
-
-                $urls->{download} = "$download_base_url/$distpath";
-
-            }
-
-            if ($distdir && !$distpath) {
-                $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$distdir/$name-$version.$file_ext";
-            }
-
+        if ($distdir && !$distpath) {
+            $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$distdir/$name-$version.$file_ext";
         }
 
     }
@@ -468,7 +458,7 @@ URI::PackageURL::Util - Utility for URI::PackageURL
 
   use URI::PackageURL::Util qw(purl_to_urls);
 
-  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.23');
+  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.24');
 
   $filename = basename($urls->{download});
   $ua->mirror($urls->{download}, "/tmp/$filename");
@@ -510,13 +500,13 @@ C<cpan>, C<docker>, C<gem>, C<github>, C<gitlab>, C<luarocks>, C<maven>, C<npm>,
 (*)  Only with B<version> component
 (**) Only if B<download_url> qualifier is provided
 
-  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.23');
+  $urls = purl_to_urls('pkg:cpan/GDT/URI-PackageURL@2.24');
 
   print Dumper($urls);
 
   # $VAR1 = {
-  #   'repository' => 'https://metacpan.org/release/GDT/URI-PackageURL-2.23',
-  #   'download'   => 'http://www.cpan.org/authors/id/G/GD/GDT/URI-PackageURL-2.23.tar.gz'
+  #   'repository' => 'https://metacpan.org/release/GDT/URI-PackageURL-2.24',
+  #   'download'   => 'http://www.cpan.org/authors/id/G/GD/GDT/URI-PackageURL-2.24.tar.gz'
   # };
 
 =back
@@ -550,7 +540,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 LICENSE AND COPYRIGHT
 
-This software is copyright (c) 2022-2025 by Giuseppe Di Terlizzi.
+This software is copyright (c) 2022-2026 by Giuseppe Di Terlizzi.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

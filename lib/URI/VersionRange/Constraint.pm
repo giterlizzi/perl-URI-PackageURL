@@ -12,7 +12,7 @@ use overload '""' => 'to_string', fallback => 1;
 
 use URI::VersionRange::Version;
 
-our $VERSION = '2.23_8';
+our $VERSION = '2.24';
 
 our %COMPARATOR = (
     '='  => 'equal',
@@ -216,7 +216,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 LICENSE AND COPYRIGHT
 
-This software is copyright (c) 2022-2025 by Giuseppe Di Terlizzi.
+This software is copyright (c) 2022-2026 by Giuseppe Di Terlizzi.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

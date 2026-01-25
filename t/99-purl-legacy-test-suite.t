@@ -108,9 +108,7 @@ foreach my $test (@{$test_suite_data}) {
 
 TODO: {
 
-        local $TODO = '(!) Disabled all tests';
-        local $TODO = '(!) Disabled huggingface test' if ($test->{type} eq 'huggingface');
-        local $TODO = '(!) Disabled cpan test'        if ($test->{type} eq 'cpan');
+        local $TODO = '(!) Disabled test!';
 
         $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
 

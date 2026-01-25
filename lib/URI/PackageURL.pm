@@ -17,7 +17,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.23_8';
+our $VERSION = '2.24';
 our @EXPORT  = qw(encode_purl decode_purl);
 
 my $PURL_REGEXP = qr{^pkg:(([/]{1,})?)([A-Za-z][A-Za-z0-9\.\-]*)([/]{1,}).+};
@@ -381,13 +381,13 @@ URI::PackageURL - Perl extension for PURL (Package URL)
     type      => 'cpan',
     namespace => 'GDT',
     name      => 'URI-PackageURL',
-    version   => '2.23'
+    version   => '2.24'
   );
   
-  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.23
+  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.24
 
   # Parse a PURL string
-  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.23');
+  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.24');
   
   
   # use setter methods
@@ -397,18 +397,18 @@ URI::PackageURL - Perl extension for PURL (Package URL)
   say $purl; # pkg:cpan/GDT/URI-PackageURL
   say $purl->version; # undef
 
-  $purl->version('2.23');
-  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.23
-  say $purl->version; # 2.23
+  $purl->version('2.24');
+  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.24
+  say $purl->version; # 2.24
   
   
   # exported functions
 
-  $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.23');
+  $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.24');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, namespace => 'GDT', name => 'URI-PackageURL', version => '2.23');
-  say $purl_string; # pkg:cpan/GDT/URI-PackageURL@2.23
+  $purl_string = encode_purl(type => cpan, namespace => 'GDT', name => 'URI-PackageURL', version => '2.24');
+  say $purl_string; # pkg:cpan/GDT/URI-PackageURL@2.24
   
   
   # uses the legacy CPAN PURL type, to be used only for compatibility (will be removed in the future)
@@ -423,7 +423,7 @@ URI::PackageURL - Perl extension for PURL (Package URL)
     type      => 'cpan',
     namespace => 'GDT',
     name      => 'URI-PackageURL',
-    version   => '2.23'
+    version   => '2.24'
   );
 
   $purl = PURL->from_string('pkg:cpan/GDT/URI-PackageURL');
@@ -436,7 +436,7 @@ URI::PackageURL - Perl extension for PURL (Package URL)
   $cloned->version('1.00');
 
   say $cloned; # pkg:cpan/GDT/URI-PackageURL@1.00
-  say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.23
+  say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.24
   
 
 =head1 DESCRIPTION
@@ -561,6 +561,30 @@ This function call is functionally identical to:
 Create new L<URI::PackageURL> instance using provided PURL components
 (type, name, version, etc).
 
+Disable PURL-type validation:
+
+    $purl = URI::PackageURL->new(validate => 0, ...);
+
+Allowed parameters:
+
+=over
+
+=item * C<validate>, Enable/Disable PURL-type validation (default: C<1>).
+
+=item * C<type>, PURL "type" component.
+
+=item * C<namespace>, PURL "namespace" component.
+
+=item * C<name>, PURL "name" component.
+
+=item * C<version>, PURL "version" component.
+
+=item * C<qualifiers>, PURL "qualifiers" component (default: C<{}>).
+
+=item * C<subpath>, PURL "subpath" component.
+
+=back
+
 =head3 B<scheme>
 
 The scheme is a constant with the value "pkg".
@@ -627,7 +651,7 @@ Clone PURL object.
     $cloned->version('1.00');
 
     say $cloned; # pkg:cpan/GDT/URI-PackageURL@1.00
-    say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.23
+    say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.24
 
 =head3 B<TO_JSON>
 
@@ -644,7 +668,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Cpanel::JSO
     #    "scheme" : "pkg",
     #    "subpath" : null,
     #    "type" : "cpan",
-    #    "version" : "2.23"
+    #    "version" : "2.24"
     # }
 
 =head3 B<from_string>
@@ -685,7 +709,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 LICENSE AND COPYRIGHT
 
-This software is copyright (c) 2022-2025 by Giuseppe Di Terlizzi.
+This software is copyright (c) 2022-2026 by Giuseppe Di Terlizzi.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

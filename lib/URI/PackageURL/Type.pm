@@ -13,7 +13,7 @@ use List::Util qw(first);
 
 use constant DEBUG => $ENV{PURL_DEBUG};
 
-our $VERSION = '2.23_8';
+our $VERSION = '2.24';
 
 
 my %ALGO_LENGTH = ('md5' => 32, 'sha1' => 40, 'sha256' => 64, 'sha384' => 96, 'sha512' => 128);
@@ -140,7 +140,7 @@ sub normalize {
 
         # The namespace is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
 
-        if ($components{type} eq 'cpan' && $components{namespace} ne 'dist') {
+        if ($components{type} eq 'cpan') {
             $components{namespace} = uc $components{namespace};
         }
 
@@ -181,6 +181,14 @@ TYPE: for ($components{type}) {
 
             # A PyPI package name must be lowercased and underscore "_" replaced with a dash "-".
             $components{name} =~ s/_/-/g;
+            last TYPE;
+        }
+
+        if (/cpan/) {
+            if (defined $components{qualifiers}->{author}) {
+                # CPAN ID. It MUST be written uppercase.
+                $components{qualifiers}->{author} = uc $components{qualifiers}->{author};
+            }
             last TYPE;
         }
 
@@ -535,7 +543,7 @@ L<https://github.com/giterlizzi/perl-URI-PackageURL>
 
 =head1 LICENSE AND COPYRIGHT
 
-This software is copyright (c) 2022-2025 by Giuseppe Di Terlizzi.
+This software is copyright (c) 2022-2026 by Giuseppe Di Terlizzi.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

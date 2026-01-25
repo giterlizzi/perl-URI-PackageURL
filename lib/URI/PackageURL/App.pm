@@ -16,7 +16,7 @@ use URI::PackageURL       ();
 use URI::PackageURL::Type ();
 use URI::PackageURL::Util qw(purl_types);
 
-our $VERSION = '2.23_8';
+our $VERSION = '2.24';
 
 sub cli_error {
     my ($error) = @_;
@@ -79,7 +79,7 @@ sub run {
         say <<"VERSION";
 $progname version $URI::PackageURL::VERSION
 
-Copyright 2022-2025, Giuseppe Di Terlizzi <gdt\@cpan.org>
+Copyright 2022-2026, Giuseppe Di Terlizzi <gdt\@cpan.org>
 
 This program is part of the "URI-PackageURL" distribution and is free software;
 you can redistribute it and/or modify it under the same terms as Perl itself.
@@ -514,7 +514,7 @@ L<Giuseppe Di Terlizzi|https://metacpan.org/author/gdt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright © 2022-2025 L<Giuseppe Di Terlizzi|https://metacpan.org/author/gdt>
+Copyright © 2022-2026 L<Giuseppe Di Terlizzi|https://metacpan.org/author/gdt>
 
 You may use and distribute this module according to the same terms
 that Perl is distributed under.
