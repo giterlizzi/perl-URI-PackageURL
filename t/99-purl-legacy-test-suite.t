@@ -4,7 +4,7 @@ use JSON::PP;
 use Test::More;
 use File::Spec;
 
-# Official PackageURL test suite (https://raw.githubusercontent.com/package-url/purl-spec/master/test-suite-data.json)
+# Official "legacy" PURL test suite (https://raw.githubusercontent.com/package-url/purl-spec/e56202efb16b943add2ae27b81a00efd25add47a/test-suite-data.json)
 
 require_ok('URI::PackageURL');
 
@@ -25,23 +25,21 @@ sub test_purl_encode {
         );
     };
 
-TODO: {
-        local $TODO = 'SKIP test because in ENCODE generate well format PURL string' if ($test->{purl} =~ /pkg%3A/);
+    local $TODO = 'SKIP test because in ENCODE always generate well format PURL string' if ($test->{purl} =~ /pkg%3A/);
 
-        if ($test->{is_invalid}) {
-            like($@, qr/Invalid Package URL/i, "ENCODE: $test_name");
-            return;
-        }
+    if ($test->{is_invalid}) {
+        like($@, qr/Invalid PURL/i, "ENCODE: $test_name");
+        return;
+    }
 
-        if (!$test->{is_invalid} && $@) {
-            fail("ENCODE: $test_name");
-            return;
-        }
+    if (!$test->{is_invalid} && $@) {
+        fail("ENCODE: $test_name");
+        return;
+    }
 
-        if (!$test->{is_invalid}) {
-            is($purl->to_string, $test->{canonical_purl}, "ENCODE: $test_name");
-            return;
-        }
+    if (!$test->{is_invalid}) {
+        is($purl->to_string, $test->{canonical_purl}, "ENCODE: $test_name");
+        return;
     }
 
 }
@@ -60,12 +58,12 @@ sub test_purl_decode {
     my $purl = eval { URI::PackageURL->from_string($purl_string) };
 
     if ($test->{is_invalid}) {
-        like($@, qr/(Invalid|Malformed) Package URL/i, "DECODE $purl_string_field: $test_name");
+        like($@, qr/(Invalid|Malformed) PURL/i, "DECODE $purl_string_field: $test_name");
         return;
     }
 
     if (!$test->{is_invalid} && $@) {
-        fail("DECODE: $test_name");
+        fail("DECODE: $test_name --> $purl_string");
         return;
     }
 
@@ -110,7 +108,8 @@ foreach my $test (@{$test_suite_data}) {
 
 TODO: {
 
-        # local $TODO = '(!) TEMPORARY SKIP CPAN TESTS' if ($test->{type} eq 'cpan');
+        local $TODO = '(!) Disabled test!';
+
         $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
 
         test_purl_encode($test);
