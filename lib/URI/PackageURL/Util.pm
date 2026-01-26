@@ -8,6 +8,7 @@ use warnings;
 use File::Spec;
 use File::Basename qw(dirname basename);
 use Exporter       qw(import);
+use Carp ();
 
 our $VERSION = '2.24';
 our @EXPORT  = qw(purl_to_urls purl_types);
