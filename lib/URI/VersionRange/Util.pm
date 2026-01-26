@@ -6,6 +6,7 @@ use utf8;
 use warnings;
 
 use Exporter qw(import);
+use Carp ();
 
 our $VERSION = '2.24';
 
