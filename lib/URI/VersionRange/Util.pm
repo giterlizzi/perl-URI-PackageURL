@@ -6,9 +6,9 @@ use utf8;
 use warnings;
 
 use Exporter qw(import);
-use Carp ();
+use Carp     ();
 
-our $VERSION = '2.24';
+our $VERSION = '2.25';
 
 our @EXPORT = qw(
     parse_semver normalize_semver is_semver
