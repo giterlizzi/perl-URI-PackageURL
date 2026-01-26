@@ -497,8 +497,8 @@ instance. Croaks on error.
 
 =head3 B<from_native>
 
-Converts the specified native range string and returns and return L<URI::VersionRange>
-instance.
+Converts the specified native range string using C<native_range_to_vers> and
+returns and return L<URI::VersionRange> instance.
 
     $vers = URI::VersionRange->from_native('npm', '~1.6.5 || >=1.7.2');
 
