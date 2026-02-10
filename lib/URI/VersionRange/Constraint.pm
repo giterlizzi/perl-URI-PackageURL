@@ -12,7 +12,7 @@ use overload '""' => 'to_string', fallback => 1;
 
 use URI::VersionRange::Version;
 
-our $VERSION = '2.25';
+our $VERSION = '2.25_1';
 
 our %COMPARATOR = (
     '='  => 'equal',
@@ -55,7 +55,7 @@ sub from_string {
     #   - Tools should validate and report an error if the version is empty.
     #   - If the version contains a percent "%" character, apply URL quoting rules to unquote this string.
 
-    if ($string =~ /^(>=|<=|!=|<|>)(.*)/) {
+    if ($string =~ /^(>=|<=|!=|<|>|=)(.*)/) {
         my ($comparator, $version) = ($1, $2);
         return $class->new(comparator => $comparator, version => $version);
     }

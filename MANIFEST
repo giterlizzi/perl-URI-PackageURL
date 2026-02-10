@@ -36,6 +36,7 @@ lib/URI/PackageURL/types/mlflow-definition.json
 lib/URI/PackageURL/types/npm-definition.json
 lib/URI/PackageURL/types/nuget-definition.json
 lib/URI/PackageURL/types/oci-definition.json
+lib/URI/PackageURL/types/opam-definition.json
 lib/URI/PackageURL/types/otp-definition.json
 lib/URI/PackageURL/types/pub-definition.json
 lib/URI/PackageURL/types/pypi-definition.json
@@ -43,6 +44,8 @@ lib/URI/PackageURL/types/qpkg-definition.json
 lib/URI/PackageURL/types/rpm-definition.json
 lib/URI/PackageURL/types/swid-definition.json
 lib/URI/PackageURL/types/swift-definition.json
+lib/URI/PackageURL/types/vscode-extension-definition.json
+lib/URI/PackageURL/types/yocto-definition.json
 lib/URI/PackageURL/Util.pm
 lib/URI/VersionRange.pm
 lib/URI/VersionRange/App.pm
@@ -99,6 +102,7 @@ t/purl/types/mlflow-test.json
 t/purl/types/npm-test.json
 t/purl/types/nuget-test.json
 t/purl/types/oci-test.json
+t/purl/types/opam-test.json
 t/purl/types/otp-test.json
 t/purl/types/pub-test.json
 t/purl/types/pypi-test.json
@@ -106,6 +110,8 @@ t/purl/types/qpkg-test.json
 t/purl/types/rpm-test.json
 t/purl/types/swid-test.json
 t/purl/types/swift-test.json
+t/purl/types/vscode-extension-test.json
+t/purl/types/yocto-test.json
 t/sync-purl-legacy-test-suite-data.sh
 t/sync-tests.sh
 t/test-suite-data.json

@@ -49,10 +49,6 @@ sub execute_test {
             local $TODO = 'Maven - SKIP test because in ENCODE always generate well format PURL string'
                 if ($test->{description} eq 'invalid encoded colon : between scheme and type');
 
-            # (!) Skip some tests for PRs and issues in purl-spec that are still open
-
-            local $TODO = 'Huggingface - missing namespace - test issue' if ($test_file =~ /huggingface/);
-
             execute_parse_test($test)      if $test->{test_type} eq 'parse';
             execute_build_test($test)      if $test->{test_type} eq 'build';
             execute_roundtrip_test($test)  if $test->{test_type} eq 'roundtrip';

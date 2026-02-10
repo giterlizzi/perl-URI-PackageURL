@@ -1,5 +1,11 @@
 Change history for URI-PackageURL
 
+2.2? 2026-02-??
+    - FIX VERS constraint parser
+    - Reduced execution time by ~39% for "URI::PackageURL::Type"
+    - Updated "99-purl-tests.t"
+    - Synced PURL spec and tests (a1c3647) with new PURL type
+
 2.25 2026-01-26
     - Added missing import (@gregoa patch applied from Debian Perl Group -
       liburi-packageurl-perl) - giterlizzi/perl-URI-PackageURL#22

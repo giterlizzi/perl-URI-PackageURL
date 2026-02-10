@@ -13,7 +13,7 @@ use List::Util qw(first);
 
 use constant DEBUG => $ENV{PURL_DEBUG};
 
-our $VERSION = '2.25';
+our $VERSION = '2.25_1';
 
 
 my %ALGO_LENGTH = ('md5' => 32, 'sha1' => 40, 'sha256' => 64, 'sha384' => 96, 'sha512' => 128);
@@ -73,12 +73,17 @@ sub definition { shift->{definition} }
 
 sub _property {
 
-    my ($self, $property, $sub_property) = @_;
+    my $self       = shift;
+    my @filter     = @_;
+    my $definition = $self->definition;
 
-    return unless $self->definition;
+    return unless $definition;
 
-    return $self->definition->{$property} unless defined $sub_property;
-    return $self->definition->{$property}->{$sub_property};
+    foreach (@filter) {
+        $definition = (defined $definition->{$_}) ? $definition->{$_} : undef;
+    }
+
+    return $definition;
 
 }
 
