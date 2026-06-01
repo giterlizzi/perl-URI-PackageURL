@@ -149,19 +149,23 @@ sub _to_cpan_urls {
         $repository_url = 'https://' . $repository_url;
     }
 
+    my $author_a  = undef;
+    my $author_au = undef;
+
+    if ($author) {
+        $author_a  = substr($author, 0, 1);
+        $author_au = substr($author, 0, 2);
+    }
+
     my $urls = {repository => "https://metacpan.org/dist/$name"};
 
-    if ($name && $version && $author) {
-
-        $urls->{repository} = "https://metacpan.org/release/$author/$name-$version";
-
-        my $author_a  = substr($author, 0, 1);
-        my $author_au = substr($author, 0, 2);
+    if ($name && $version) {
 
         my $download_base_url = "$repository_url/authors/id";
 
-        if (!$distpath && !$distdir) {
-            $urls->{download} = "$download_base_url/$author_a/$author_au/$author/$name-$version.$file_ext";
+        if ($author) {
+            $urls->{download}   = "$download_base_url/$author_a/$author_au/$author/$name-$version.$file_ext";
+            $urls->{repository} = "https://metacpan.org/release/$author/$name-$version";
         }
 
         if ($distpath && !$distdir) {
@@ -173,9 +177,10 @@ sub _to_cpan_urls {
 
             if ($distpath !~ /^([A-Z]{1})\/([A-Z]{2})/) {
 
-                my @parts     = split '/', $distpath;
-                my $author_a  = substr($parts[0], 0, 1);
-                my $author_au = substr($parts[0], 0, 2);
+                my @parts = split '/', $distpath;
+
+                $author_a  = substr($parts[0], 0, 1);
+                $author_au = substr($parts[0], 0, 2);
 
                 $distpath = join '/', $author_a, $author_au, $distpath;
 
