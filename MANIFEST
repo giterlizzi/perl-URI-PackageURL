@@ -14,6 +14,7 @@ lib/URI/PackageURL/types/bazel-definition.json
 lib/URI/PackageURL/types/bitbucket-definition.json
 lib/URI/PackageURL/types/bitnami-definition.json
 lib/URI/PackageURL/types/cargo-definition.json
+lib/URI/PackageURL/types/chrome-extension-definition.json
 lib/URI/PackageURL/types/cocoapods-definition.json
 lib/URI/PackageURL/types/composer-definition.json
 lib/URI/PackageURL/types/conan-definition.json
@@ -69,6 +70,7 @@ t/90-cpan-distname-info.t
 t/91-cpan-distpath-quailfier.t
 t/99-purl-legacy-test-suite.t
 t/99-purl-tests.t
+t/99-purl-type-definition.t
 t/99-vers-tests.t
 t/manifest.t
 t/pod-coverage.t
@@ -80,6 +82,7 @@ t/purl/types/bazel-test.json
 t/purl/types/bitbucket-test.json
 t/purl/types/bitnami-test.json
 t/purl/types/cargo-test.json
+t/purl/types/chrome-extension-test.json
 t/purl/types/cocoapods-test.json
 t/purl/types/composer-test.json
 t/purl/types/conan-test.json
@@ -134,3 +137,4 @@ t/vers/openssl_version_cmp_test.json
 t/vers/pypi_range_containment_test.json
 t/vers/pypi_range_from_native_test.json
 t/vers/pypi_range_roundtrip_test.json
+t/vers/vers_canonical_parse_test.json
