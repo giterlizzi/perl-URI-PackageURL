@@ -22,13 +22,15 @@ my %CACHE = ();
 
 sub new {
 
-    my ($class, $type) = @_;
+    my ($class, $type, $definition) = @_;
 
     Carp::croak 'Missing PURL type' unless $type;
 
     $type = lc $type;
 
-    my $self = {type => $type, definition => _load_definition($type) || {}};
+    $definition //= _load_definition($type);
+
+    my $self = {type => $type, definition => $definition || {}};
 
     return bless $self, $class;
 
@@ -113,7 +115,23 @@ sub component_native_name          { shift->_property(shift . '_definition', 'na
 sub component_normalization_rules  { shift->_property(shift . '_definition', 'normalization_rules') || [] }
 sub component_note                 { shift->_property(shift . '_definition', 'note') }
 sub component_permitted_characters { shift->_property(shift . '_definition', 'permitted_characters') }
-sub component_requirement          { shift->_property(shift . '_definition', 'requirement') }
+
+sub component_requirement {
+
+    my ($self, $component) = @_;
+
+    if ($component eq 'qualifiers') {
+        foreach (@{$self->qualifiers_definition}) {
+            my $requirement = $_->{requirement};
+            next unless $requirement;
+            return 'required' if ($requirement eq 'required');
+        }
+        return 'optional';
+    }
+
+    return $self->_property($component . '_definition', 'requirement');
+
+}
 
 sub normalize {
 
@@ -272,8 +290,22 @@ sub validate {
 
             DEBUG and say STDERR "-- Validation - $component is $requirement";
 
-            if (defined $components{$component} && $self->component_is_prohibited($component)) {
-                Carp::croak sprintf("Invalid PURL: '%s' is prohibited for '%s' PURL type", $component, $purl_type);
+            if (defined $components{$component}) {
+
+                if ($self->component_is_prohibited($component)) {
+                    Carp::croak sprintf("Invalid PURL: '%s' is prohibited for '%s' PURL type", $component, $purl_type);
+                }
+
+                if (my $permitted_characters = $self->component_permitted_characters($component)) {
+
+                    DEBUG and say STDERR "-- Validation - $component permitted characters $permitted_characters";
+
+                    if ($components{$component} !~ /$permitted_characters/) {
+                        Carp::croak sprintf("Invalid PURL: '%s' invalid characters for '%s' PURL type", $component, $purl_type);
+                    }
+
+                }
+
             }
 
             if (!defined $components{$component} && $self->component_is_required($component)) {

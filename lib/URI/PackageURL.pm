@@ -375,7 +375,7 @@ URI::PackageURL - Perl extension for PURL (Package URL)
   use URI::PackageURL;
 
   # OO-interface
-  
+
   # Encode components in PURL string
   $purl = URI::PackageURL->new(
     type      => 'cpan',
@@ -383,15 +383,15 @@ URI::PackageURL - Perl extension for PURL (Package URL)
     name      => 'URI-PackageURL',
     version   => '2.25'
   );
-  
+
   say $purl; # pkg:cpan/GDT/URI-PackageURL@2.25
 
   # Parse a PURL string
   $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.25');
-  
-  
+
+
   # use setter methods
-  
+
   my $purl = URI::PackageURL->new(type => 'cpan', namespace => 'GDT', name => 'URI-PackageURL');
 
   say $purl; # pkg:cpan/GDT/URI-PackageURL
@@ -400,8 +400,8 @@ URI::PackageURL - Perl extension for PURL (Package URL)
   $purl->version('2.25');
   say $purl; # pkg:cpan/GDT/URI-PackageURL@2.25
   say $purl->version; # 2.25
-  
-  
+
+
   # exported functions
 
   $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.25');
@@ -409,10 +409,10 @@ URI::PackageURL - Perl extension for PURL (Package URL)
 
   $purl_string = encode_purl(type => cpan, namespace => 'GDT', name => 'URI-PackageURL', version => '2.25');
   say $purl_string; # pkg:cpan/GDT/URI-PackageURL@2.25
-  
-  
+
+
   # uses the legacy CPAN PURL type, to be used only for compatibility (will be removed in the future)
-  
+
   $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
   URI::PackageURL->new(type => 'cpan', name => 'URI::PackageURL');
 
@@ -437,7 +437,7 @@ URI::PackageURL - Perl extension for PURL (Package URL)
 
   say $cloned; # pkg:cpan/GDT/URI-PackageURL@1.00
   say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.25
-  
+
 
 =head1 DESCRIPTION
 
