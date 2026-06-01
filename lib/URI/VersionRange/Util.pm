@@ -473,7 +473,7 @@ sub version_compare {
 
     my $scheme = shift;
 
-    my %TYPES = (npm => \&semver_version_compare, semver => \&semver_version_compare);
+    my %TYPES = (npm => \&semver_version_compare, semver => \&semver_version_compare, pypi => \&semver_version_compare);
 
     if (defined $TYPES{$scheme}) {
         return $TYPES{$scheme}->(@_);

@@ -22,6 +22,8 @@ sub load {
     my @CLASSES = (
         join('::', 'URI::VersionRange::Scheme',  lc($scheme)),    # Scheme specific
         join('::', 'URI::VersionRange::Version', lc($scheme)),    # Scheme specific (legacy naming convention)
+        'URI::VersionRange::Scheme::generic',                     # Fallback
+        'URI::VersionRange::Version::generic',                    # Fallback
     );
 
     foreach my $version_class (@CLASSES) {
@@ -54,21 +56,6 @@ sub compare {
 
 package    # hide from pause
     URI::VersionRange::Scheme::cpan {
-    use parent 'URI::VersionRange::Version';
-
-    use version();
-    use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
-
-    sub compare {
-        my ($left, $right) = @_;
-        return (version->parse($left->[0]) <=> version->parse($right->[0]));
-    }
-}
-
-# PyPi
-
-package    # hide from pause
-    URI::VersionRange::Scheme::pypi {
     use parent 'URI::VersionRange::Version';
 
     use version();
@@ -144,6 +131,9 @@ Convert the native range of the scheme into a VERS string.
 
 Load scheme class.
 
+This method will attempt to load the class C<URI::VersionRange::Scheme::generic>
+as a fallback schema if the specific schema class does not exist.
+
 
 =head2 HOW TO CREATE A NEW SCHEME COMPARATOR CLASS
 
@@ -166,8 +156,8 @@ native range of the scheme into a VERS string
 =back
 
 
-This is an example that implements a comparator for the C<generic> scheme using
-L<Version::libversion::XS> module:
+This is an example that implements a comparator for the C<generic> fallback scheme
+using L<Version::libversion::XS> module:
 
   package URI::VersionRange::Scheme::generic {
 
