@@ -1,9 +1,8 @@
 #!perl
 
-use File::Spec;
-use JSON::PP;
 use Test::More;
 use File::Find qw(find);
+use File::Spec;
 
 require_ok('URI::PackageURL');
 
@@ -111,6 +110,19 @@ sub execute_parse_test {
             $test->{expected_output}->{$component},
             "$test_context --> Compare '$component' component"
         );
+    }
+
+    if (%{$purl->qualifiers}) {
+
+        my $got_qualifiers      = $purl->qualifiers;
+        my $expected_qualifiers = $test->{expected_output}->{qualifiers};
+
+        if (defined $got_qualifiers->{checksum}) {
+            $got_qualifiers->{checksum} = join ',', @{$got_qualifiers->{checksum}};
+        }
+
+        is_deeply($got_qualifiers, $expected_qualifiers, "$test_context --> Compare 'qualifiers' component");
+
     }
 
 }
