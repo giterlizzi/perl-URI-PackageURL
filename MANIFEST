@@ -13,6 +13,7 @@ lib/URI/PackageURL/types/apk-definition.json
 lib/URI/PackageURL/types/bazel-definition.json
 lib/URI/PackageURL/types/bitbucket-definition.json
 lib/URI/PackageURL/types/bitnami-definition.json
+lib/URI/PackageURL/types/brew-definition.json
 lib/URI/PackageURL/types/cargo-definition.json
 lib/URI/PackageURL/types/chrome-extension-definition.json
 lib/URI/PackageURL/types/cocoapods-definition.json
@@ -45,6 +46,7 @@ lib/URI/PackageURL/types/qpkg-definition.json
 lib/URI/PackageURL/types/rpm-definition.json
 lib/URI/PackageURL/types/swid-definition.json
 lib/URI/PackageURL/types/swift-definition.json
+lib/URI/PackageURL/types/vcpkg-definition.json
 lib/URI/PackageURL/types/vscode-extension-definition.json
 lib/URI/PackageURL/types/yocto-definition.json
 lib/URI/PackageURL/Util.pm
@@ -81,6 +83,7 @@ t/purl/types/apk-test.json
 t/purl/types/bazel-test.json
 t/purl/types/bitbucket-test.json
 t/purl/types/bitnami-test.json
+t/purl/types/brew-test.json
 t/purl/types/cargo-test.json
 t/purl/types/chrome-extension-test.json
 t/purl/types/cocoapods-test.json
@@ -113,6 +116,7 @@ t/purl/types/qpkg-test.json
 t/purl/types/rpm-test.json
 t/purl/types/swid-test.json
 t/purl/types/swift-test.json
+t/purl/types/vcpkg-test.json
 t/purl/types/vscode-extension-test.json
 t/purl/types/yocto-test.json
 t/sync-purl-legacy-test-suite-data.sh
