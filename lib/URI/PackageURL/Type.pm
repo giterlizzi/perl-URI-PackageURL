@@ -216,6 +216,18 @@ TYPE: for ($components{type}) {
             last TYPE;
         }
 
+        if (/brew/) {
+
+            # namespace and name: It is not case sensitive and must be lowercased.
+
+            $components{namespace} = lc($components{namespace}) if (defined $components{namespace});
+            $components{name}      = lc($components{name});
+
+            last TYPE;
+
+        }
+
+
     }
 
     return wantarray ? %components : \%components;
@@ -301,7 +313,8 @@ sub validate {
                     DEBUG and say STDERR "-- Validation - $component permitted characters $permitted_characters";
 
                     if ($components{$component} !~ /$permitted_characters/) {
-                        Carp::croak sprintf("Invalid PURL: '%s' invalid characters for '%s' PURL type", $component, $purl_type);
+                        Carp::croak
+                            sprintf("Invalid PURL: '%s' invalid characters for '%s' PURL type", $component, $purl_type);
                     }
 
                 }
