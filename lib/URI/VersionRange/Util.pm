@@ -8,7 +8,7 @@ use warnings;
 use Exporter qw(import);
 use Carp     ();
 
-our $VERSION = '2.25_1';
+our $VERSION = '2.25_2';
 
 our @EXPORT = qw(
     parse_semver normalize_semver is_semver
@@ -296,6 +296,7 @@ sub _gem_native_range {
     # Convert GEM version spec to VERS range
 
     my $native = shift;
+    $native =~ s/\s+//g;
 
     # Specification From  ... To (exclusive)
     # ">= 3.0"      3.0   ... &infin;
@@ -305,11 +306,22 @@ sub _gem_native_range {
     # "~> 3.5.0"    3.5.0 ... 3.6
     # "~> 3"        3.0   ... 4.0
 
-    if ($native =~ /^(~>)(.*)/) {
-        return _tilde_operator('gem', $2);
+    my @parts       = grep {length} split /,/, $native;
+    my @constraints = ();
+
+    foreach my $part (@parts) {
+
+
+        if ($part =~ /^(~>)(.*)/) {
+            push @constraints, _tilde_operator('gem', $2);
+            next;
+        }
+
+        push @constraints, $part;
+
     }
 
-    return $native;
+    return join('|', @constraints);
 
 }
 
