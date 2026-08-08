@@ -21,10 +21,12 @@ use overload '""' => 'to_string', fallback => 1;
 
 BEGIN { *VERS:: = *URI::VersionRange:: }
 
-our $VERSION = '2.25_1';
-our @EXPORT  = qw(encode_vers decode_vers);
+our $VERSION = '2.25_2';
+our @EXPORT  = qw(encode_vers decode_vers is_vers);
 
 my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
+
+sub is_vers { ($_[0] =~ /$VERS_REGEXP/) ? 1 : undef }
 
 sub new {
 
@@ -77,7 +79,7 @@ sub from_string {
 
     my ($class, $string) = @_;
 
-    if ($string !~ /$VERS_REGEXP/) {
+    unless (is_vers($string)) {
         Carp::croak 'Malformed Version Range string';
     }
 
@@ -181,6 +183,7 @@ sub contains {
     my @second = ();
 
     my $version_class = $self->{scheme_class};
+    my $tested        = $version_class->new($version);
 
     if (scalar @{$self->constraints} == 1) {
         return $self->constraint_contains($self->constraints->[0], $version);
@@ -194,15 +197,13 @@ sub contains {
 
         return TRUE
             if ((first { $constraint->comparator eq $_ } ('=', '<=', '>='))
-            && ($version_class->new($version) == $version_class->new($constraint->version)));
+            && ($tested == $version_class->new($constraint->version)));
 
         # If the "tested version" is equal to the any of the constraint version
         # where the constraint comparator is "=!" then the "tested version" is NOT
         # in the range. Check is finished.
 
-        return FALSE
-            if ($constraint->comparator eq '!='
-            && ($version_class->new($version) == $version_class->new($constraint->version)));
+        return FALSE if ($constraint->comparator eq '!=' && ($tested == $version_class->new($constraint->version)));
 
         # Split the constraint list in two sub lists:
         #    a first list where the comparator is "=" or "!="
@@ -244,7 +245,7 @@ sub contains {
 
             return TRUE
                 if ((first { $current_constraint->comparator eq $_ } ('<=', '<'))
-                && ($version_class->new($version) < $version_class->new($current_constraint->version)));
+                && ($tested < $version_class->new($current_constraint->version)));
 
             $is_first_iteration = FALSE;
 
@@ -257,8 +258,8 @@ sub contains {
 
         if (   (first { $current_constraint->comparator eq $_ } ('>', '>='))
             && (first { $next_constraint->comparator eq $_ } ('<', '<='))
-            && ($version_class->new($version) > $version_class->new($current_constraint->version))
-            && ($version_class->new($version) < $version_class->new($next_constraint->version)))
+            && ($tested > $version_class->new($current_constraint->version))
+            && ($tested < $version_class->new($next_constraint->version)))
         {
             return TRUE;
         }
@@ -280,7 +281,7 @@ sub contains {
 
     return TRUE
         if ((first { $next_constraint->comparator eq $_ } ('>', '>='))
-        && ($version_class->new($version) > $version_class->new($next_constraint->version)));
+        && ($tested > $version_class->new($next_constraint->version)));
 
     return FALSE;
 
@@ -343,6 +344,9 @@ URI::VersionRange - Perl extension for VERS (Version Range Specifier)
   $vers_string = encode_vers(scheme => cpan, constraints => ['>2.00']);
   say $vers_string; # vers:cpan/>2.00
 
+  if (! is_vers('3.14')) {
+    die "Invalid VERS string";
+  }
 
   # alias
 
@@ -401,6 +405,14 @@ Converts the given "vers" string to L<URI::VersionRange> object. Croaks on error
 This function call is functionally identical to:
 
     $vers = URI::VersionRange->from_string($vers_string);
+
+=head3 B<is_vers>
+
+    if (! is_vers('3.14')) {
+        die "Invalid VERS string";
+    }
+
+Check if the given string is a valid VERS string.
 
 
 =head2 OBJECT-ORIENTED INTERFACE
