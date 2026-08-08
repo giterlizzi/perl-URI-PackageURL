@@ -364,36 +364,39 @@ URI::PackageURL - Perl extension for PURL (Package URL)
   # Encode components in PURL string
   $purl = URI::PackageURL->new(
     type      => 'cpan',
-    namespace => 'GDT',
     name      => 'URI-PackageURL',
     version   => '2.25'
   );
 
-  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.25
+  say $purl; # pkg:cpan/URI-PackageURL@2.25
 
   # Parse a PURL string
-  $purl = URI::PackageURL->from_string('pkg:cpan/GDT/URI-PackageURL@2.25');
+  $purl = URI::PackageURL->from_string('pkg:cpan/URI-PackageURL@2.25');
 
 
   # use setter methods
 
-  my $purl = URI::PackageURL->new(type => 'cpan', namespace => 'GDT', name => 'URI-PackageURL');
+  my $purl = URI::PackageURL->new(type => 'cpan', name => 'URI-PackageURL');
 
-  say $purl; # pkg:cpan/GDT/URI-PackageURL
+  say $purl; # pkg:cpan/URI-PackageURL
   say $purl->version; # undef
 
   $purl->version('2.25');
-  say $purl; # pkg:cpan/GDT/URI-PackageURL@2.25
+  say $purl; # pkg:cpan/URI-PackageURL@2.25
   say $purl->version; # 2.25
 
 
   # exported functions
 
-  $purl = decode_purl('pkg:cpan/GDT/URI-PackageURL@2.25');
+  $purl = decode_purl('pkg:cpan/URI-PackageURL@2.25');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, namespace => 'GDT', name => 'URI-PackageURL', version => '2.25');
-  say $purl_string; # pkg:cpan/GDT/URI-PackageURL@2.25
+  $purl_string = encode_purl(type => cpan, name => 'URI-PackageURL', version => '2.25');
+  say $purl_string; # pkg:cpan/URI-PackageURL@2.25
+
+  if (! is_purl('https://packageurl.org/')) {
+    die "Invalid PURL string";
+  }
 
 
   # uses the legacy CPAN PURL type, to be used only for compatibility (will be removed in the future)
@@ -401,17 +404,15 @@ URI::PackageURL - Perl extension for PURL (Package URL)
   $ENV{PURL_LEGACY_CPAN_TYPE} = 1;
   URI::PackageURL->new(type => 'cpan', name => 'URI::PackageURL');
 
-
   # alias
 
   $purl = PURL->new(
     type      => 'cpan',
-    namespace => 'GDT',
     name      => 'URI-PackageURL',
     version   => '2.25'
   );
 
-  $purl = PURL->from_string('pkg:cpan/GDT/URI-PackageURL');
+  $purl = PURL->from_string('pkg:cpan/URI-PackageURL');
 
 
   # clone
@@ -420,8 +421,8 @@ URI::PackageURL - Perl extension for PURL (Package URL)
 
   $cloned->version('1.00');
 
-  say $cloned; # pkg:cpan/GDT/URI-PackageURL@1.00
-  say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.25
+  say $cloned; # pkg:cpan/URI-PackageURL@1.00
+  say $purl;   # pkg:cpan/URI-PackageURL@2.25
 
 
 =head1 DESCRIPTION
@@ -433,6 +434,8 @@ package in a mostly universal and uniform way across programing languages,
 package managers, packaging conventions, tools, APIs and databases.
 
 L<https://github.com/package-url/purl-spec>
+
+L<https://packageurl.org/>
 
 L<TC54 - Software and system transparency|https://tc54.org/>
 
@@ -472,21 +475,41 @@ Optional.
 
 =head2 CPAN PURL TYPE
 
-C<cpan> is an official PURL type (L<https://github.com/package-url/purl-spec/blob/main/types-doc/cpan-definition.md>)
+C<cpan> is an official PURL type (L<https://github.com/package-url/purl-spec/blob/main/docs/types/definitions/cpan-definition.md>).
 
-=over 2
+    pkg:cpan/<namespace>/<name>@<version>?<qualifiers>#<subpath>
 
-=item * The default repository is C<https://www.cpan.org/>.
+=head3 Namespace
 
-=item * The C<namespace> is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
+The C<namespace> is the CPAN author/publisher ID (CPANID) and is optional.
 
-=item * The C<name> is the distribution name and is case sensitive. A distribution name MUST NOT contain the string C<::>.
+When present, it represents the CPAN author/publisher ID (CPANID) and MUST be 
+uppercase. It is appropriate to use C<namespace> for compatibility with 
+existing CPAN purl producers/consumers or when a workflow explicitly requires 
+author-scoped identifiers. For new identifiers, the C<author> qualifier is the 
+preferred way to specify the author/publisher. When C<version> is omitted, 
+author scoping via C<namespace> MAY be ambiguous because a distribution can 
+change maintainers over time.
 
-=item * The C<version> is the distribution version.
+=head3 Name
 
-=item * Optional qualifiers may include:
+The C<name> is the distribution name and is case sensitive. A distribution name
+MUST NOT contain the string C<::>.
+
+=head3 Version
+
+The C<version> is the distribution version.
+
+=head3 Qualifiers
+
+Optional qualifiers may include:
 
 =over
+
+=item * C<author>: CPAN author/publisher ID (CPANID)
+
+=item * C<distpath>: Repository-relative path (not a URL) to the distribution
+archive or directory, typically under 'authors/id/...'
 
 =item * C<repository_url>: CPAN/MetaCPAN/BackPAN/DarkPAN repository base URL (default is https://www.cpan.org)
 
@@ -498,14 +521,24 @@ C<cpan> is an official PURL type (L<https://github.com/package-url/purl-spec/blo
 
 =back
 
-=back
+=head3 Repository
+
+The default repository URL is C<https://www.cpan.org/>.
 
 =head3 Examples
+
+    pkg:cpan/perl@5.42
+    pkg:cpan/DBI@1.646
+    pkg:cpan/SBOM-CycloneDX
+    pkg:cpan/URI-PackageURL?author=GDT
+    pkg:cpan/libwww-perl@6.76?author=OALDERS
+    pkg:cpan/DateTime@1.55?author=DROLSKY&repository_url=backpan.perl.org
+    pkg:cpan/Term-Gnuplot@0.90380906?distpath=authors%2Fid%2FI%2FIL%2FILYAZ%2Fmodules%2FTerm-Gnuplot-0.90380906.zip
 
     pkg:cpan/DROLSKY/DateTime@1.55
     pkg:cpan/GDT/URI-PackageURL
     pkg:cpan/OALDERS/libwww-perl@6.76
-
+    
 =head3 Legacy CPAN PURL type
 
 Add C<PURL_LEGACY_CPAN_TYPE> environment variable for use the legacy CPAN PURL type.
@@ -535,6 +568,15 @@ Converts the given PURL string to PURL components. Croaks on error.
 This function call is functionally identical to:
 
     $purl = URI::PackageURL->from_string($purl_string);
+
+=head3 B<is_purl>
+
+    if (! is_purl('https://packageurl.org/')) {
+        die "Invalid PURL string";
+    }
+
+Check if the given string is a valid PURL string.
+
 
 =head2 OBJECT-ORIENTED INTERFACE
 
@@ -635,8 +677,8 @@ Clone PURL object.
 
     $cloned->version('1.00');
 
-    say $cloned; # pkg:cpan/GDT/URI-PackageURL@1.00
-    say $purl;   # pkg:cpan/GDT/URI-PackageURL@2.25
+    say $cloned; # pkg:cpan/URI-PackageURL@1.00
+    say $purl;   # pkg:cpan/URI-PackageURL@2.25
 
 =head3 B<TO_JSON>
 
@@ -648,7 +690,6 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Cpanel::JSO
 
     # {
     #    "name" : "URI-PackageURL",
-    #    "namespace" : "GDT",
     #    "qualifiers" : {},
     #    "scheme" : "pkg",
     #    "subpath" : null,
