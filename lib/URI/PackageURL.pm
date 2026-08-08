@@ -304,12 +304,8 @@ sub to_string {
 }
 
 sub to_hash {
-
-    my $self = shift;
-
-    my %hash = map { $_ => $self->{components}->{$_} } qw[scheme type name version namespace qualifiers subpath];
-    return \%hash;
-
+    my %hash = map { $_ => $_[0]->{components}->{$_} } qw[scheme type name version namespace qualifiers subpath];
+    return wantarray ? %hash : \%hash;
 }
 
 sub TO_JSON { shift->to_hash }
