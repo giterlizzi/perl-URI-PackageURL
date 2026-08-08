@@ -427,9 +427,6 @@ TYPE: for ($purl_type) {
 
         if (/swift/) {
 
-            # TODO remove after spec FIX
-            Carp::croak "Invalid PURL: Swift 'version' is required" unless defined $components{version};
-
             if (defined $components{namespace}) {
                 my ($source, $user_org) = split '/', $components{namespace};
                 Carp::croak "Invalid PURL: Swift user/organization is required in 'namespace'" unless $user_org;
