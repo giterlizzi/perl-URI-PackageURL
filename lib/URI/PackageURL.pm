@@ -17,8 +17,8 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.25_1';
-our @EXPORT  = qw(encode_purl decode_purl);
+our $VERSION = '2.25_2';
+our @EXPORT  = qw(encode_purl decode_purl is_purl);
 
 my $PURL_REGEXP = qr{^pkg:(([/]{1,})?)([A-Za-z][A-Za-z0-9\.\-]*)([/]{1,}).+};
 
@@ -66,7 +66,8 @@ sub qualifiers { shift->_component('qualifiers', @_) }
 sub subpath    { shift->_component('subpath',    @_) }
 
 sub encode_purl { __PACKAGE__->new(@_)->to_string }
-sub decode_purl { __PACKAGE__->from_string(shift) }
+sub decode_purl { __PACKAGE__->from_string(@_) }
+sub is_purl     { ($_[0] =~ /$PURL_REGEXP/) ? 1 : undef }
 
 sub clone {
     my $self = shift;
@@ -89,7 +90,7 @@ sub from_string {
         $string =~ s{^pkg:/}{pkg:};
     }
 
-    if ($string !~ /$PURL_REGEXP/) {
+    unless (is_purl($string)) {
         Carp::croak 'Malformed PURL string';
     }
 
