@@ -60,7 +60,7 @@ sub execute_roundtrip_test {
     my $test = shift;
 
     my $test_description = $test->{description};
-    my $vers_string      = $test->{input}->{vers};
+    my $vers_string      = $test->{input};
     my $expected         = $test->{expected_output};
 
     my $got = eval { URI::VersionRange->from_string($vers_string) };
