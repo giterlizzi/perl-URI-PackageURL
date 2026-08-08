@@ -33,4 +33,6 @@ unzip -j $VERS_ARCHIVE_FILE 'vers-spec-*/tests/*'  -d $CWD/vers
 rm $VERS_ARCHIVE_FILE
 
 # Update manifest
-make manifest
+( cd ..
+  make manifest )
+ 
