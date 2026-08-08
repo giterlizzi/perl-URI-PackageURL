@@ -26,6 +26,7 @@ lib/URI/PackageURL/types/deb-definition.json
 lib/URI/PackageURL/types/docker-definition.json
 lib/URI/PackageURL/types/gem-definition.json
 lib/URI/PackageURL/types/generic-definition.json
+lib/URI/PackageURL/types/git-definition.json
 lib/URI/PackageURL/types/github-definition.json
 lib/URI/PackageURL/types/golang-definition.json
 lib/URI/PackageURL/types/hackage-definition.json
@@ -96,6 +97,7 @@ t/purl/types/deb-test.json
 t/purl/types/docker-test.json
 t/purl/types/gem-test.json
 t/purl/types/generic-test.json
+t/purl/types/git-test.json
 t/purl/types/github-test.json
 t/purl/types/golang-test.json
 t/purl/types/hackage-test.json
@@ -127,6 +129,7 @@ t/vers/alpm_version_cmp_test.json
 t/vers/conan_range_from_native_basic_test.json
 t/vers/conan_range_from_native_test.json
 t/vers/conan_version_cmp_test.json
+t/vers/datetime_version_cmp_test.json
 t/vers/gem_range_from_native_test.json
 t/vers/gentoo_version_cmp_test.json
 t/vers/lexicographic-test.json
@@ -141,4 +144,5 @@ t/vers/openssl_version_cmp_test.json
 t/vers/pypi_range_containment_test.json
 t/vers/pypi_range_from_native_test.json
 t/vers/pypi_range_roundtrip_test.json
+t/vers/test-overview.md
 t/vers/vers_canonical_parse_test.json
