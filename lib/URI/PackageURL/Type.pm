@@ -227,6 +227,18 @@ TYPE: for ($components{type}) {
 
         }
 
+        if (/git/) {
+
+            $components{namespace} = lc($components{namespace});
+            $components{name}      = lc($components{name});
+
+            my @parts = split '/', $components{namespace}, 2;
+
+            $components{namespace} = join '/', shift @parts;
+            $components{name}      = join '/', @parts, $components{name};
+
+            last TYPE;
+        }
 
     }
 
