@@ -13,8 +13,8 @@ use List::Util qw(first);
 
 use constant DEBUG => $ENV{PURL_DEBUG};
 
-our $VERSION = '2.25_1';
-
+our $VERSION = '2.25_2';
+my %DEFINITION_CACHE = ();
 
 my %ALGO_LENGTH = ('md5' => 32, 'sha1' => 40, 'sha256' => 64, 'sha384' => 96, 'sha512' => 128);
 
@@ -28,7 +28,7 @@ sub new {
 
     $type = lc $type;
 
-    $definition //= _load_definition($type);
+    $definition = $DEFINITION_CACHE{$type} //= _load_definition($type);
 
     my $self = {type => $type, definition => $definition || {}};
 
