@@ -1,13 +1,20 @@
 Change history for URI-PackageURL
 
-2.2? 2026-06-??
+2.2? 2026-08-??
     - PURL: Improved component validation
+    - PURL: Improved percent-encoding
     - PURL: Reduced execution time by ~39% for "URI::PackageURL::Type"
     - PURL: Updated "99-purl-tests.t"
     - PURL: Added new generic PURL type definition test with "experimental" PURL examples testing
+    - PURL: Added "is_purl" utility
+    - PURL: Added validation flag (enabled by default) in "URI::PackageURL->from_string" and "decode_purl"
     - VERS: FIX constraint parser
     - VERS: Improved "pypi" and "generic" schema
-    - Synced PURL spec and tests (99e5ad8) with new PURL type
+    - VERS: Improved "gem" native range
+    - VERS: Added "is_vers" utility
+    - Synced PURL spec and tests with new PURL type
+    - Switched to "purl-test.schema-0.2.json"
+    - Disabled "legacy" PURL test suite
 
 2.25 2026-01-26
     - Added missing import (@gregoa patch applied from Debian Perl Group -
