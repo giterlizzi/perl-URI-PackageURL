@@ -80,7 +80,7 @@ sub repository_url { shift->to_urls->{repository} }
 
 sub from_string {
 
-    my ($class, $string) = @_;
+    my ($class, $string, %options) = @_;
 
     DEBUG and say STDERR "-- INPUT: $string";
     DEBUG and say STDERR "-- REGEXP: $PURL_REGEXP";
@@ -244,7 +244,7 @@ sub from_string {
         say STDERR "-- S6: @s6";
     }
 
-    return $class->new(%components);
+    return $class->new(%components, validate => ($options{validate} // 1));
 
 }
 
