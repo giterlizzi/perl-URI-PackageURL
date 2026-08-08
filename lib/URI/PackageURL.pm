@@ -111,7 +111,7 @@ sub from_string {
 
     if ($s1[1]) {
         $s1[1] =~ s/(^\/|\/$)//;
-        my @subpath = map { _url_decode($_) } grep { $_ ne '' && $_ ne '.' && $_ ne '..' } split /\//, $s1[1];
+        my @subpath = map { _percent_decode($_) } grep { $_ ne '' && $_ ne '.' && $_ ne '..' } split /\//, $s1[1];
         $components{subpath} = join '/', @subpath;
     }
 
@@ -137,11 +137,15 @@ sub from_string {
         foreach my $qualifier (@qualifiers) {
 
             my ($key, $value) = ($qualifier =~ /^([^=]+)(?:=(.*))?$/);
-            $value = _url_decode($value);
+            $value = _percent_decode($value);
 
             if ($key eq 'checksums' || $key eq 'checksum') {
                 Carp::carp "Detected 'checksums' qualifier. Use 'checksum' qualifier instead." if ($key eq 'checksums');
                 $value = [split(',', $value)];
+            }
+
+            if ($key eq 'vers') {
+                $value = URI::VersionRange->from_string($value);
             }
 
             $components{qualifiers}->{lc $key} = $value;
@@ -195,7 +199,7 @@ sub from_string {
         @s5 = ($s4[1]);
     }
 
-    $components{version} = _url_decode($s5[1]) if ($s5[1]);
+    $components{version} = _percent_decode($s5[1]) if ($s5[1]);
 
 
     # Strip all trailing '/' characters (e.g., '/', '//', '///' and so on) from the 'remainder'
@@ -212,7 +216,7 @@ sub from_string {
     $s5[0] =~ s|/$||;    # Strip trailing '/' character
 
     my @s6 = split('/', $s5[0], -1);
-    $components{name} = _url_decode(pop @s6);
+    $components{name} = _percent_decode(pop @s6);
 
     Carp::croak 'Invalid PURL: Missing "name"' unless $components{name};
 
@@ -226,7 +230,7 @@ sub from_string {
     #     This is the 'namespace'
 
     if (@s6) {
-        $components{namespace} = join '/', map { _url_decode($_) } @s6;
+        $components{namespace} = join '/', map { _percent_decode($_) } @s6;
     }
 
 
@@ -252,16 +256,16 @@ sub to_string {
     # Namespace
     if ($self->namespace) {
 
-        my @ns = map { _url_encode($_) } split(/\//, $self->namespace);
+        my @ns = map { _percent_encode($_) } split(/\//, $self->namespace);
         push @purl, (join('/', @ns), '/');
 
     }
 
     # Name
-    push @purl, _encode($self->name);
+    push @purl, _percent_encode($self->name, '^A-Za-z0-9\-._~:\/');    # Default percent encoding + excluding slash
 
     # Version
-    push @purl, ('@', _encode($self->version)) if ($self->version);
+    push @purl, ('@', _percent_encode($self->version)) if ($self->version);
 
     # Qualifiers
     if (my $qualifiers = $self->qualifiers) {
@@ -273,13 +277,11 @@ sub to_string {
             }
         }
 
-        # TODO: Use URI::VersionRange during qualifiers decode ?
         if (defined $qualifiers->{vers} && ref $qualifiers->{vers} eq 'URI::VersionRange') {
             $qualifiers->{vers} = $qualifiers->{vers}->to_string;
-            say STDERR $qualifiers->{vers};
         }
 
-        my @qualifiers = map { sprintf('%s=%s', lc $_, _encode($qualifiers->{$_})) }
+        my @qualifiers = map { sprintf('%s=%s', lc $_, _percent_encode($qualifiers->{$_})) }
             grep { $qualifiers->{$_} } sort keys %{$qualifiers};
 
         push @purl, ('?', join('&', @qualifiers)) if (@qualifiers);
@@ -294,7 +296,7 @@ sub to_string {
         $subpath =~ s{\.\./}{};
         $subpath =~ s{\./}{};
 
-        my @subpath = map { _encode($_) } split '/', $subpath;
+        my @subpath = map { _percent_encode($_) } split '/', $subpath;
         push @purl, ('#', join('/', @subpath));
 
     }
@@ -322,31 +324,17 @@ sub _component {
 
 }
 
-sub _url_encode {
+sub _percent_encode {
 
     my ($string, $pattern) = @_;
 
-    # RFC-3986
-    $pattern //= '^A-Za-z0-9\-._~/' unless $pattern;
+    $pattern //= '^A-Za-z0-9\-._~:' unless $pattern;
     $string =~ s/([$pattern])/sprintf '%%%02X', ord $1/ge;
     return $string;
 
 }
 
-sub _encode {
-
-    my $string = shift;
-
-    $string = _url_encode($string);
-
-    $string =~ s{%3A}{:}g;
-    $string =~ s{/}{%2F}g;
-
-    return $string;
-
-}
-
-sub _url_decode {
+sub _percent_decode {
 
     my $string = shift;
     return unless $string;
