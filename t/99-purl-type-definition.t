@@ -15,6 +15,11 @@ my @PURL_COMPONENTS = ('name', 'namespace', 'version', 'subpath', 'qualifiers');
 
 foreach my $type (@PURL_TYPES) {
 
+    if (my $purl_type = $ENV{PURL_TYPE}) {
+        next unless ($purl_type eq $type);
+        diag "Test only $ENV{PURL_TYPE} testcases";
+    }
+
     my $t = URI::PackageURL::Type->new($type);
 
     subtest "$type - component requirement" => sub {
@@ -38,6 +43,9 @@ foreach my $type (@PURL_TYPES) {
         my $examples = $t->examples;
 
         subtest "$type - examples" => sub {
+
+            my $id = 1;
+
             foreach my $example (@{$examples}) {
                 my $purl = eval { URI::PackageURL->from_string($example) };
 
@@ -45,8 +53,10 @@ foreach my $type (@PURL_TYPES) {
                     fail("Invalid PURL type: $@");
                 }
                 else {
-                    is $purl->to_string, $example, "Test $example";
+                    is $purl->to_string, $example, "Test example #$id";
                 }
+
+                $id++;
             }
         };
 
