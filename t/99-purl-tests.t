@@ -50,7 +50,7 @@ sub execute_test {
 
             execute_parse_test($test)      if $test->{test_type} eq 'parse';
             execute_build_test($test)      if $test->{test_type} eq 'build';
-            execute_roundtrip_test($test)  if $test->{test_type} eq 'roundtrip';
+            execute_validate_test($test)   if $test->{test_type} eq 'validate';
             execute_validation_test($test) if $test->{test_type} eq 'validation';
 
         }
@@ -90,7 +90,7 @@ sub execute_parse_test {
 
     note $purl_string;
 
-    my $purl = eval { URI::PackageURL->from_string($purl_string, 0) };
+    my $purl = eval { URI::PackageURL->from_string($purl_string) };
 
     if ($test->{expected_failure}) {
         like($@, qr/(Invalid|Malformed) PURL/i, $test_context);
@@ -127,7 +127,7 @@ sub execute_parse_test {
 
 }
 
-sub execute_roundtrip_test {
+sub execute_validate_test {
 
     my $test = shift;
 
@@ -136,7 +136,7 @@ sub execute_roundtrip_test {
 
     note $purl_string;
 
-    my $purl = eval { URI::PackageURL->from_string($purl_string, 0) };
+    my $purl = eval { URI::PackageURL->from_string($purl_string) };
 
     if ($@) {
         fail("$test_context ($@)");
