@@ -49,6 +49,7 @@ sub execute_test {
             execute_from_native_test($test) if $test->{test_type} eq 'from_native';
             execute_comparison_test($test)  if $test->{test_type} eq 'comparison';
             execute_parse_test($test)       if $test->{test_type} eq 'parse';
+            execute_equality_test($test)    if $test->{test_type} eq 'equality';
         }
 
     }
@@ -109,19 +110,42 @@ sub execute_comparison_test {
 
     my $test = shift;
 
-    local $TODO = 'Improve comparison tests';
-
     my $test_description = test_context($test);
     my $scheme           = $test->{input}->{input_scheme} || $test->{input}->{input_type};    # test schema --> v1 or v2
     my @versions         = @{$test->{input}->{versions}};
     my @expected_output  = @{$test->{expected_output}};
 
+    # Comparators for other schemes are provided by the user (see URI::VersionRange::Version)
+    local $TODO = "No comparator class for '$scheme' scheme"
+        if URI::VersionRange::Version->load($scheme) eq 'URI::VersionRange::Version';
+
     my $encoded = eval { URI::VersionRange->new(scheme => $scheme, constraints => \@versions) };
-    diag $@;
+    diag $@ if $@;
+
     my $got = eval { URI::VersionRange->from_string("$encoded") };
     my @got = map { $_->version } @{$got->constraints};
 
     is_deeply(\@got, \@expected_output, "$test_description --> $got");
+
+}
+
+sub execute_equality_test {
+
+    my $test = shift;
+
+    my $test_description = test_context($test);
+    my $scheme           = $test->{input}->{input_scheme} || $test->{input}->{input_type};    # test schema --> v1 or v2
+    my ($left, $right) = @{$test->{input}->{versions}};
+    my $expected = $test->{expected_output};
+
+    # Comparators for other schemes are provided by the user (see URI::VersionRange::Version)
+    local $TODO = "No comparator class for '$scheme' scheme"
+        if URI::VersionRange::Version->load($scheme) eq 'URI::VersionRange::Version';
+
+    my $got = eval { URI::VersionRange::Util::version_compare($scheme, $left, $right) == 0 };
+    diag $@ if $@;
+
+    is(!!$got, !!$expected, "$test_description --> $left " . ($expected ? '==' : '!=') . " $right");
 
 }
 
