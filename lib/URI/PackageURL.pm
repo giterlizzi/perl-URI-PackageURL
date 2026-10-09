@@ -22,7 +22,7 @@ our $VERSION = '2.25_3';
 our @EXPORT  = qw(encode_purl decode_purl is_purl);
 
 my $PURL_TYPE_REGEXP = qr{[a-z][a-z0-9\.\-]*};
-my $PURL_REGEXP = qr{^pkg:(([/]{1,})?)([A-Za-z][A-Za-z0-9\.\-]*)([/]{1,}).+};
+my $PURL_REGEXP      = qr{^pkg:(([/]{1,})?)([A-Za-z][A-Za-z0-9\.\-]*)([/]{1,}).+};
 
 sub new {
 
@@ -35,7 +35,7 @@ sub new {
     my $qualifiers = delete $params{qualifiers} // {};
     my $subpath    = delete $params{subpath};
 
-    Carp::croak "Invalid PURL: 'type' component is required" unless defined $type && length $type;
+    Carp::croak "Invalid PURL: 'type' component is required"     unless defined $type && length $type;
     Carp::croak "Invalid PURL: invalid 'type' component '$type'" unless lc($type) =~ /\A$PURL_TYPE_REGEXP\z/;
 
     my $validate = delete $params{validate} // 1;
@@ -301,7 +301,8 @@ sub to_string {
 
     # Subpath
     if (defined $self->subpath && length $self->subpath) {
-        my @subpath = map { _percent_encode($_) } grep { length $_ && $_ ne '.' && $_ ne '..' } split '/', $self->subpath;
+        my @subpath = map { _percent_encode($_) } grep { length $_ && $_ ne '.' && $_ ne '..' } split '/',
+            $self->subpath;
         push @purl, ('#', join('/', @subpath));
     }
 
