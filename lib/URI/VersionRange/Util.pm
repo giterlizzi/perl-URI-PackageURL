@@ -8,7 +8,7 @@ use warnings;
 use Exporter qw(import);
 use Carp     ();
 
-our $VERSION = '2.25_2';
+our $VERSION = '2.25_3';
 
 our @EXPORT = qw(
     parse_semver normalize_semver is_semver
@@ -483,15 +483,13 @@ sub hash_to_semver {
 
 sub version_compare {
 
-    my $scheme = shift;
+    my ($scheme, $left, $right) = @_;
 
-    my %TYPES = (npm => \&semver_version_compare, semver => \&semver_version_compare, pypi => \&semver_version_compare);
+    require URI::VersionRange::Version;
 
-    if (defined $TYPES{$scheme}) {
-        return $TYPES{$scheme}->(@_);
-    }
+    my $version_class = URI::VersionRange::Version->load($scheme);
+    return $version_class->new($left) <=> $version_class->new($right);
 
-    return generic_version_compare(@_);
 }
 
 # Semver compare
@@ -658,6 +656,8 @@ range string to a VERS string, but this may not work perfectly.
 =over
 
 =item $int = version_compare($scheme, $a, $b)
+
+Compare two versions using the scheme comparator class (see L<URI::VersionRange::Version>).
 
 =item $int = generic_version_compare($a, $b)
 

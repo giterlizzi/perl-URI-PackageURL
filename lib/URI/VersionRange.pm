@@ -10,7 +10,7 @@ use List::Util qw(first);
 use Exporter   qw(import);
 
 use URI::VersionRange::Constraint;
-use URI::VersionRange::Util qw(native_range_to_vers version_compare);
+use URI::VersionRange::Util qw(native_range_to_vers);
 use URI::VersionRange::Version;
 
 use constant DEBUG => $ENV{VERS_DEBUG};
@@ -21,10 +21,11 @@ use overload '""' => 'to_string', fallback => 1;
 
 BEGIN { *VERS:: = *URI::VersionRange:: }
 
-our $VERSION = '2.25_2';
+our $VERSION = '2.25_3';
 our @EXPORT  = qw(encode_vers decode_vers is_vers);
 
-my $VERS_REGEXP = qr{^vers:[a-z\\.\\-\\+][a-z0-9\\.\\-\\+]*/.+};
+my $VERS_SCHEME_REGEXP = qr{[a-z][a-z0-9\.\-]*};
+my $VERS_REGEXP        = qr{^vers:$VERS_SCHEME_REGEXP/.+};
 
 sub is_vers { ($_[0] =~ /$VERS_REGEXP/) ? 1 : undef }
 
@@ -49,6 +50,8 @@ sub new {
 
     $scheme = lc $scheme;
 
+    Carp::croak "Invalid Version Range: invalid scheme '$scheme'" unless $scheme =~ /\A$VERS_SCHEME_REGEXP\z/;
+
     my $scheme_class = URI::VersionRange::Version->load($scheme);
 
     my $self = {scheme => $scheme, constraints => \@constraints, scheme_class => $scheme_class};
@@ -70,7 +73,17 @@ sub from_native {
     my $scheme = delete $params{scheme} or Carp::croak "Invalid Version Range: 'scheme' is required";
     my $range  = delete $params{range}  or Carp::croak "Invalid Version Range: 'range' is required";
 
-    my $vers = native_range_to_vers(lc $scheme, $range);
+    $scheme = lc $scheme;
+
+    Carp::croak "Invalid Version Range: invalid scheme '$scheme'" unless $scheme =~ /\A$VERS_SCHEME_REGEXP\z/;
+
+    my $version_class = URI::VersionRange::Version->load($scheme);
+
+    my $vers
+        = $version_class->can('from_native')
+        ? $version_class->from_native($range, $scheme)
+        : native_range_to_vers($scheme, $range);
+
     return $class->from_string($vers);
 
 }
@@ -78,6 +91,8 @@ sub from_native {
 sub from_string {
 
     my ($class, $string) = @_;
+
+    utf8::encode($string);
 
     unless (is_vers($string)) {
         Carp::croak 'Malformed Version Range string';
@@ -95,9 +110,9 @@ sub from_string {
     #       Tools must validate that the URI-scheme value is vers.
     # - The right hand side is the specifier.
 
-    $string =~ s/(\s|\t)+//g;
+    $string =~ s/(\n|\t)+//g;
 
-    my @s1 = split(':', $string);
+    my @s1 = split(':', $string, 2);
 
     # - Split the specifier from left once on a slash "/".
     # - The left hand side is the <versioning-scheme> that must be lowercase. Tools
@@ -148,8 +163,11 @@ sub from_string {
 }
 
 sub to_string {
-    my $self        = shift;
-    my @constraints = sort { version_compare($self->scheme, $a->version, $b->version) } @{$self->constraints};
+    my $self = shift;
+
+    my $class       = $self->{scheme_class};
+    my @constraints = sort { $class->new($a->version) <=> $class->new($b->version) } @{$self->constraints};
+
     return join '', 'vers:', $self->scheme, '/', join('|', @constraints);
 }
 
@@ -157,6 +175,10 @@ sub constraint_contains {
 
     my ($self, $constraint, $version) = @_;
 
+    # "vers:none/*" is a range containing no versions (vers-spec)
+    return FALSE if $self->scheme eq 'none';
+
+    # "vers:scheme/*" is range containing all versions (vers-spec)
     return TRUE if $constraint->comparator eq '*';
 
     my $version_class = $self->{scheme_class};
@@ -268,7 +290,7 @@ sub contains {
         # then these versions are out the range. Continue to the next iteration.
 
         elsif ((first { $current_constraint->comparator eq $_ } ('<', '<='))
-            && (first { $next_constraint->comparator } ('>', '>=')))
+            && (first { $next_constraint->comparator eq $_ } ('>', '>=')))
         {
             next;
         }
@@ -325,7 +347,7 @@ URI::VersionRange - Perl extension for VERS (Version Range Specifier)
     scheme      => 'cpan',
     constraints => ['>2.00']
   );
-  
+
   say $vers; # vers:cpan/>2.00
 
   if ($vers->contains('2.10')) {
@@ -505,13 +527,17 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>
 Converts the given "vers" string to VERS components and return L<URI::VersionRange>
 instance. Croaks on error.
 
-
 =head3 B<from_native>
 
-Converts the specified native range string using C<native_range_to_vers> and
-returns and return L<URI::VersionRange> instance.
+    $vers = URI::VersionRange->from_native( scheme => STRING, range => STRING );
+    $vers = VERS->from_native( scheme => STRING, range => STRING );
 
-    $vers = URI::VersionRange->from_native('npm', '~1.6.5 || >=1.7.2');
+Converts the specified native range string using C<native_range_to_vers> and
+return L<URI::VersionRange> instance. Croaks on error.
+
+    $vers = URI::VersionRange->from_native(scheme => 'npm', range => '~1.6.5 || >=1.7.2');
+
+    say $vers; # vers:npm/>=1.6.5|<1.7.0|>=1.7.2
 
 Supported native range scheme:
 
@@ -533,8 +559,12 @@ Supported native range scheme:
 
 =back
 
-For other schemes, C<native_range_to_vers> will attempt to convert the native
+For other schemes, C<native_range_to_vers> will attempt to convert th
 range string to a VERS string, but this may not work perfectly.
+
+If the scheme class implements C<from_native>, it will be used for th
+(see L<URI::VersionRange::Version>).
+
 
 =head1 SUPPORT
 
