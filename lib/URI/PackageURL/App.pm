@@ -16,7 +16,7 @@ use URI::PackageURL       ();
 use URI::PackageURL::Type ();
 use URI::PackageURL::Util qw(purl_types);
 
-our $VERSION = '2.25_1';
+our $VERSION = '2.25_3';
 
 sub cli_error {
     my ($error) = @_;
@@ -27,6 +27,9 @@ sub cli_error {
 sub run {
 
     my ($class, @args) = @_;
+
+    # UTF-8 encoded command line arguments
+    utf8::decode($_) for @args;
 
     my %options = (format => 'json');
 

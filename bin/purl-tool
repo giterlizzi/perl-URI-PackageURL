@@ -6,6 +6,9 @@ use utf8;
 
 use URI::PackageURL::App;
 
+binmode STDOUT, ':encoding(UTF-8)';
+binmode STDERR, ':encoding(UTF-8)';
+
 exit URI::PackageURL::App->run(@ARGV) unless caller();
 
 1;

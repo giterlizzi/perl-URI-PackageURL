@@ -13,7 +13,7 @@ use List::Util qw(first);
 
 use constant DEBUG => $ENV{PURL_DEBUG};
 
-our $VERSION = '2.25_2';
+our $VERSION = '2.25_3';
 my %DEFINITION_CACHE = ();
 
 my %ALGO_LENGTH = ('md5' => 32, 'sha1' => 40, 'sha256' => 64, 'sha384' => 96, 'sha512' => 128);
@@ -161,8 +161,8 @@ sub normalize {
             $components{namespace} = lc $components{namespace};
         }
 
-        # The namespace is the CPAN id of the author/publisher. It MUST be written uppercase and is required.
-
+        # Legacy CPAN spec: The namespace is the CPAN id of the author/publisher.
+        #                   It MUST be written uppercase and is required.
         if ($components{type} eq 'cpan') {
             $components{namespace} = uc $components{namespace};
         }
@@ -173,6 +173,9 @@ sub normalize {
     if (defined $components{qualifiers}->{checksum} and ref $components{qualifiers}->{checksum} ne 'ARRAY') {
         $components{qualifiers}->{checksum} = [$components{qualifiers}->{checksum}];
     }
+
+    # Force qualifier keys to lowercase
+    %{$components{qualifiers}} = map { lc $_ => $components{qualifiers}->{$_} } keys %{$components{qualifiers}};
 
     # PURL type specific normalization
 TYPE: for ($components{type}) {
@@ -269,7 +272,8 @@ sub validate {
     Carp::croak "Invalid PURL: '$components{scheme}' is not a valid scheme" unless ($components{scheme} eq 'pkg');
 
     foreach my $qualifier (keys %{$components{qualifiers}}) {
-        Carp::croak "Invalid PURL: '$qualifier' is not a valid qualifier" if ($qualifier =~ /(\s|\%)/);
+        Carp::croak "Invalid PURL: '$qualifier' is not a valid qualifier"   if ($qualifier =~ /(\s|\%)/);
+        Carp::croak "Invalid PURL: '$qualifier' qualifier not in lowercase" if ($qualifier =~ /([A-Z])/);
     }
 
     # Check checksum qualifier

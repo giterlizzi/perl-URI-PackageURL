@@ -10,7 +10,7 @@ use File::Basename qw(dirname basename);
 use Exporter       qw(import);
 use Carp           ();
 
-our $VERSION = '2.25_1';
+our $VERSION = '2.25_3';
 our @EXPORT  = qw(purl_to_urls purl_types);
 
 sub purl_types {
@@ -525,7 +525,6 @@ C<cpan>, C<docker>, C<gem>, C<github>, C<gitlab>, C<luarocks>, C<maven>, C<npm>,
   #   'download'   => 'http://www.cpan.org/authors/id/G/GD/GDT/URI-PackageURL-2.25.tar.gz'
   # };
 
-=back
 
 =head1 SUPPORT
 

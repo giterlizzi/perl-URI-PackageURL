@@ -10,6 +10,7 @@ use Exporter qw(import);
 
 use URI::PackageURL::Type;
 use URI::PackageURL::Util qw(purl_to_urls);
+use URI::VersionRange     ();
 
 BEGIN { *PURL:: = *URI::PackageURL:: }
 
@@ -17,27 +18,29 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.25_2';
+our $VERSION = '2.25_3';
 our @EXPORT  = qw(encode_purl decode_purl is_purl);
 
+my $PURL_TYPE_REGEXP = qr{[a-z][a-z0-9\.\-]*};
 my $PURL_REGEXP = qr{^pkg:(([/]{1,})?)([A-Za-z][A-Za-z0-9\.\-]*)([/]{1,}).+};
 
 sub new {
 
     my ($class, %params) = @_;
 
-    my $type       = delete $params{type} or Carp::croak "Invalid PURL: 'type' component is required";
+    my $type       = delete $params{type};
     my $namespace  = delete $params{namespace};
     my $name       = delete $params{name} or Carp::croak "Invalid PURL: 'name' component is required";
     my $version    = delete $params{version};
     my $qualifiers = delete $params{qualifiers} // {};
     my $subpath    = delete $params{subpath};
 
+    Carp::croak "Invalid PURL: 'type' component is required" unless defined $type && length $type;
+    Carp::croak "Invalid PURL: invalid 'type' component '$type'" unless lc($type) =~ /\A$PURL_TYPE_REGEXP\z/;
+
     my $validate = delete $params{validate} // 1;
 
-    my $purl_definition = URI::PackageURL::Type->new($type);
-
-    my %components = $purl_definition->normalize(
+    my %components = (
         scheme     => 'pkg',         # The scheme is a constant with the value "pkg".
         type       => $type,
         namespace  => $namespace,
@@ -47,9 +50,11 @@ sub new {
         subpath    => $subpath,
     );
 
-    $purl_definition->validate(%components) if $validate;
+    my $definition = URI::PackageURL::Type->new($type);
 
-    my $self = {components => \%components, definition => $purl_definition};
+    $definition->validate(%components) if $validate;
+
+    my $self = {components => \%{$definition->normalize(%components)}, definition => $definition};
 
     return bless $self, $class;
 
@@ -71,7 +76,7 @@ sub is_purl     { ($_[0] =~ /$PURL_REGEXP/) ? 1 : undef }
 
 sub clone {
     my $self = shift;
-    bless {%$self}, ref $self;
+    return ref($self)->new(%{$self->to_hash}, validate => 0);
 }
 
 sub to_urls        { purl_to_urls(shift) }
@@ -81,6 +86,8 @@ sub repository_url { shift->to_urls->{repository} }
 sub from_string {
 
     my ($class, $string, %options) = @_;
+
+    utf8::encode($string);
 
     DEBUG and say STDERR "-- INPUT: $string";
     DEBUG and say STDERR "-- REGEXP: $PURL_REGEXP";
@@ -110,7 +117,7 @@ sub from_string {
 
     my @s1 = split(/#([^#]+)$/, $string);
 
-    if ($s1[1]) {
+    if (defined $s1[1]) {
         $s1[1] =~ s/(^\/|\/$)//;
         my @subpath = map { _percent_decode($_) } grep { $_ ne '' && $_ ne '.' && $_ ne '..' } split /\//, $s1[1];
         $components{subpath} = join '/', @subpath;
@@ -131,13 +138,16 @@ sub from_string {
 
     my @s2 = split(/\?([^\?]+)$/, $s1[0]);
 
-    if ($s2[1]) {
+    if (defined $s2[1]) {
 
         my @qualifiers = split('&', $s2[1]);
 
         foreach my $qualifier (@qualifiers) {
 
             my ($key, $value) = ($qualifier =~ /^([^=]+)(?:=(.*))?$/);
+
+            # Discard any key/value pairs where the value is empty
+            next unless defined $value && length $value;
             $value = _percent_decode($value);
 
             if ($key eq 'checksums' || $key eq 'checksum') {
@@ -149,7 +159,7 @@ sub from_string {
                 $value = URI::VersionRange->from_string($value);
             }
 
-            $components{qualifiers}->{lc $key} = $value;
+            $components{qualifiers}->{$key} = $value;
 
         }
 
@@ -181,7 +191,7 @@ sub from_string {
     my @s4 = split('/', $s3[1], 2);
     $components{type} = lc $s4[0];
 
-    Carp::croak 'Invalid PURL: Invalid "type"' if $components{type} !~ /^[a-z][a-z0-9.-]+$/;
+    Carp::croak 'Invalid PURL: Invalid "type"' if $components{type} !~ /\A$PURL_TYPE_REGEXP\z/;
     Carp::croak 'Invalid PURL' unless $s4[1];
 
 
@@ -200,7 +210,7 @@ sub from_string {
         @s5 = ($s4[1]);
     }
 
-    $components{version} = _percent_decode($s5[1]) if ($s5[1]);
+    $components{version} = _percent_decode($s5[1]) if (defined $s5[1]);
 
 
     # Strip all trailing '/' characters (e.g., '/', '//', '///' and so on) from the 'remainder'
@@ -219,7 +229,7 @@ sub from_string {
     my @s6 = split('/', $s5[0], -1);
     $components{name} = _percent_decode(pop @s6);
 
-    Carp::croak 'Invalid PURL: Missing "name"' unless $components{name};
+    Carp::croak 'Invalid PURL: Missing "name"' unless defined $components{name} && length $components{name};
 
 
     # Split the 'remainder' on '/'
@@ -255,51 +265,44 @@ sub to_string {
     my @purl = ('pkg', ':', $self->type, '/');
 
     # Namespace
-    if ($self->namespace) {
-
+    if (defined $self->namespace && length $self->namespace) {
         my @ns = map { _percent_encode($_) } split(/\//, $self->namespace);
         push @purl, (join('/', @ns), '/');
-
     }
 
     # Name
     push @purl, _percent_encode($self->name, '^A-Za-z0-9\-._~:\/');    # Default percent encoding + excluding slash
 
     # Version
-    push @purl, ('@', _percent_encode($self->version)) if ($self->version);
+    push @purl, ('@', _percent_encode($self->version)) if (defined $self->version && length $self->version);
 
     # Qualifiers
-    if (my $qualifiers = $self->qualifiers) {
+    if ($self->qualifiers) {
+
+        my %qualifiers = %{$self->qualifiers};
 
         # TODO: Legacy 'checksums' qualifier will be dropped in the future
         foreach (qw[checksum checksums]) {
-            if (defined $qualifiers->{$_} && ref $qualifiers->{$_} eq 'ARRAY') {
-                $qualifiers->{$_} = join ',', @{$qualifiers->{$_}};
+            if (defined $qualifiers{$_} && ref $qualifiers{$_} eq 'ARRAY') {
+                $qualifiers{$_} = join ',', @{$qualifiers{$_}};
             }
         }
 
-        if (defined $qualifiers->{vers} && ref $qualifiers->{vers} eq 'URI::VersionRange') {
-            $qualifiers->{vers} = $qualifiers->{vers}->to_string;
+        if (defined $qualifiers{vers} && ref $qualifiers{vers} eq 'URI::VersionRange') {
+            $qualifiers{vers} = $qualifiers{vers}->to_string;
         }
 
-        my @qualifiers = map { sprintf('%s=%s', lc $_, _percent_encode($qualifiers->{$_})) }
-            grep { $qualifiers->{$_} } sort keys %{$qualifiers};
+        my @qualifiers = map { sprintf('%s=%s', lc $_, _percent_encode($qualifiers{$_})) }
+            grep { defined $qualifiers{$_} && length $qualifiers{$_} } sort keys %qualifiers;
 
         push @purl, ('?', join('&', @qualifiers)) if (@qualifiers);
 
     }
 
     # Subpath
-    if ($self->subpath) {
-
-        my $subpath = $self->subpath;
-
-        $subpath =~ s{\.\./}{};
-        $subpath =~ s{\./}{};
-
-        my @subpath = map { _percent_encode($_) } split '/', $subpath;
+    if (defined $self->subpath && length $self->subpath) {
+        my @subpath = map { _percent_encode($_) } grep { length $_ && $_ ne '.' && $_ ne '..' } split '/', $self->subpath;
         push @purl, ('#', join('/', @subpath));
-
     }
 
     return join '', @purl;
@@ -308,7 +311,7 @@ sub to_string {
 
 sub to_hash {
     my %hash = map { $_ => $_[0]->{components}->{$_} } qw[scheme type name version namespace qualifiers subpath];
-    return wantarray ? %hash : \%hash;
+    return \%hash;
 }
 
 sub TO_JSON { shift->to_hash }
@@ -330,6 +333,9 @@ sub _percent_encode {
     my ($string, $pattern) = @_;
 
     $pattern //= '^A-Za-z0-9\-._~:' unless $pattern;
+
+    utf8::encode($string);
+
     $string =~ s/([$pattern])/sprintf '%%%02X', ord $1/ge;
     return $string;
 
@@ -338,9 +344,11 @@ sub _percent_encode {
 sub _percent_decode {
 
     my $string = shift;
-    return unless $string;
+    return unless defined $string;
 
     $string =~ s/%([0-9a-fA-F]{2})/chr hex $1/ge;
+
+    Carp::croak 'Invalid PURL: invalid UTF-8 encoding' unless utf8::decode($string);
     return $string;
 
 }
@@ -483,12 +491,12 @@ C<cpan> is an official PURL type (L<https://github.com/package-url/purl-spec/blo
 
 The C<namespace> is the CPAN author/publisher ID (CPANID) and is optional.
 
-When present, it represents the CPAN author/publisher ID (CPANID) and MUST be 
-uppercase. It is appropriate to use C<namespace> for compatibility with 
-existing CPAN purl producers/consumers or when a workflow explicitly requires 
-author-scoped identifiers. For new identifiers, the C<author> qualifier is the 
-preferred way to specify the author/publisher. When C<version> is omitted, 
-author scoping via C<namespace> MAY be ambiguous because a distribution can 
+When present, it represents the CPAN author/publisher ID (CPANID) and MUST be
+uppercase. It is appropriate to use C<namespace> for compatibility with
+existing CPAN purl producers/consumers or when a workflow explicitly requires
+author-scoped identifiers. For new identifiers, the C<author> qualifier is the
+preferred way to specify the author/publisher. When C<version> is omitted,
+author scoping via C<namespace> MAY be ambiguous because a distribution can
 change maintainers over time.
 
 =head3 Name
@@ -538,7 +546,7 @@ The default repository URL is C<https://www.cpan.org/>.
     pkg:cpan/DROLSKY/DateTime@1.55
     pkg:cpan/GDT/URI-PackageURL
     pkg:cpan/OALDERS/libwww-perl@6.76
-    
+
 =head3 Legacy CPAN PURL type
 
 Add C<PURL_LEGACY_CPAN_TYPE> environment variable for use the legacy CPAN PURL type.
