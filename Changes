@@ -13,7 +13,7 @@ Change history for URI-PackageURL
       (removed string eval)
     - VERS: FIX "vers:none/*" contained all versions (vers-spec: no versions)
     - VERS: Added "is_vers" utility and "scheme" validation (aligned to vers-spec "type")
-    - VERS: Added "semver" and "npm" scheme comparators
+    - VERS: Added "semver", "npm", "intdot", "lexicographic" and "datetime" scheme comparators
     - VERS: The scheme comparator class is now used by "contains", "to_string" (sort),
       "version_compare" and "from_native" (if implemented)
     - VERS: Improved scheme comparator class loading ("." and "-" in scheme, croak on
