@@ -48,12 +48,14 @@ subtest "VERS: scheme comparator classes" => sub {
 
     #<<<
     my %classes = (
-        'cpan'    => 'URI::VersionRange::Scheme::cpan',
-        'semver'  => 'URI::VersionRange::Scheme::semver',
-        'npm'     => 'URI::VersionRange::Scheme::npm',
-        'pypi'    => 'URI::VersionRange::Version',
-        'foo-bar' => 'URI::VersionRange::Scheme::foo_bar',
-        'unknown' => 'URI::VersionRange::Version',
+        cpan          => 'URI::VersionRange::Scheme::cpan',
+        semver        => 'URI::VersionRange::Scheme::semver',
+        npm           => 'URI::VersionRange::Scheme::npm',
+        pypi          => 'URI::VersionRange::Version',
+        datetime      => 'URI::VersionRange::Scheme::datetime',
+        intdot        => 'URI::VersionRange::Scheme::intdot',
+        lexicographic => 'URI::VersionRange::Scheme::lexicographic',
+        unknown       => 'URI::VersionRange::Version',
     );
     #>>>
 

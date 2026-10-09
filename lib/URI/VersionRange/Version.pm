@@ -104,6 +104,51 @@ package    # hide from pause
     use parent -norequire, 'URI::VersionRange::Scheme::semver';
 }
 
+# intdot
+
+package    # hide from pause
+    URI::VersionRange::Scheme::intdot {
+    use parent 'URI::VersionRange::Version';
+
+    use URI::VersionRange::Util qw(intdot_version_compare);
+    use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
+
+    sub compare {
+        my ($left, $right) = @_;
+        return intdot_version_compare($left->[0], $right->[0]);
+    }
+}
+
+# lexicographic
+
+package    # hide from pause
+    URI::VersionRange::Scheme::lexicographic {
+    use parent 'URI::VersionRange::Version';
+
+    use URI::VersionRange::Util qw(lexicographic_version_compare);
+    use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
+
+    sub compare {
+        my ($left, $right) = @_;
+        return lexicographic_version_compare($left->[0], $right->[0]);
+    }
+}
+
+# datetime
+
+package    # hide from pause
+    URI::VersionRange::Scheme::datetime {
+    use parent 'URI::VersionRange::Version';
+
+    use URI::VersionRange::Util qw(datetime_version_compare);
+    use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
+
+    sub compare {
+        my ($left, $right) = @_;
+        return datetime_version_compare($left->[0], $right->[0]);
+    }
+}
+
 1;
 
 __END__
@@ -153,6 +198,12 @@ and it's used by L<URI::VersionRange> for C<contains> and for sorting the constr
 =item * C<semver> - Semantic Versioning 2.0.0 (L<https://semver.org>)
 
 =item * C<npm> - Same as C<semver>
+
+=item * C<datetime> - RFC 3339 timestamp (leap second C<60> is not supported)
+
+=item * C<intdot> - Integers separated by dots (eg. C<10.234.5.12>)
+
+=item * C<lexicographic> - Byte-wise comparison of the UTF-8 encoded versions
 
 =back
 

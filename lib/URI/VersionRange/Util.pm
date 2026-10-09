@@ -14,9 +14,10 @@ our @EXPORT = qw(
     parse_semver normalize_semver is_semver
     native_range_to_vers
     version_compare semver_version_compare generic_version_compare
+    intdot_version_compare datetime_version_compare lexicographic_version_compare
 );
 
-# https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+# SemVer (https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string)
 my $SEMVER_REGEXP = qr{(?x)
     ^
     (?P<major>0|[1-9]\d*)
@@ -26,6 +27,21 @@ my $SEMVER_REGEXP = qr{(?x)
     (?P<patch>0|[1-9]\d*)
     (?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?
     (?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?
+    $
+};
+
+# RFC 3339 date-time (https://www.rfc-editor.org/rfc/rfc3339#section-5.6)
+my $RFC3339_REGEXP = qr{(?x)
+    ^
+    (?P<year>[0-9]{4}) - (?P<month>[0-9]{2}) - (?P<day>[0-9]{2})             # full-date
+    [Tt]
+    (?P<hour>[0-9]{2}) : (?P<minute>[0-9]{2}) : (?P<second>[0-9]{2})         # partial-time
+    (?: \. (?P<fraction>[0-9]+) )?                                           # time-secfrac
+    (?:                                                                      # time-offset
+        (?P<utc>[Zz])
+        |
+        (?P<offset_sign>[+-]) (?P<offset_hour>[0-9]{2}) : (?P<offset_minute>[0-9]{2})
+    )
     $
 };
 
@@ -492,7 +508,7 @@ sub version_compare {
 
 }
 
-# Semver compare
+# SemVer compare
 
 sub semver_version_compare {
 
@@ -595,6 +611,92 @@ sub generic_version_compare {
 
 }
 
+# intdot compare
+
+sub intdot_version_compare {
+
+    my ($a, $b) = @_;
+
+    ($a) = ($a // '') =~ /^([0-9.]*)/;
+    ($b) = ($b // '') =~ /^([0-9.]*)/;
+
+    my @A = split /\./, $a;
+    my @B = split /\./, $b;
+
+    s/^0+// for @A;
+    s/^0+// for @B;
+
+    my $max = @A > @B ? scalar @A : scalar @B;
+
+    for my $i (0 .. $max - 1) {
+        my $a_part = $A[$i] || 0;
+        my $b_part = $B[$i] || 0;
+
+        my $cmp = ($a_part <=> $b_part);
+        return $cmp if $cmp;
+    }
+
+    return 0;
+
+}
+
+
+# datetime compare
+use Time::Local;
+use Data::Dumper;
+
+sub datetime_version_compare {
+
+    my ($a, $b) = @_;
+
+    my ($a_epoch, $a_fraction) = _datetime_to_epoch($a);
+    my ($b_epoch, $b_fraction) = _datetime_to_epoch($b);
+
+    return ($a_epoch <=> $b_epoch) || ($a_fraction cmp $b_fraction);
+}
+
+sub _datetime_to_epoch {
+
+    my $datetime = shift // '';
+
+    Carp::croak "Invalid datetime version '$datetime'" unless $datetime =~ $RFC3339_REGEXP;
+
+    my %dt = %+;
+
+    Carp::croak "Invalid datetime version '$datetime' (time-offset out of range)"
+        if (defined $dt{offset_hour} && ($dt{offset_hour} > 23 || $dt{offset_minute} > 59));
+
+    my $epoch = eval { timegm($dt{second}, $dt{minute}, $dt{hour}, $dt{day}, $dt{month} - 1, $dt{year}) };
+
+    Carp::croak "Invalid datetime version '$datetime'" unless defined $epoch;
+
+    if (defined $dt{offset_hour}) {
+        my $offset = ($dt{offset_hour} * 60 + $dt{offset_minute}) * 60;
+        $epoch -= $offset if ($dt{offset_sign} eq '+');
+        $epoch += $offset if ($dt{offset_sign} eq '-');
+    }
+
+    my $fraction = $dt{fraction} // '000';
+    $fraction .= '0' x (9 - length $fraction);    # nanoseconds
+
+    return ($epoch, $fraction);
+
+}
+
+
+# lexicographic compare
+
+sub lexicographic_version_compare {
+
+    my ($a, $b) = @_;
+
+    utf8::encode($a);
+    utf8::encode($b);
+
+    return $a cmp $b;
+
+}
+
 1;
 
 __END__
@@ -661,7 +763,25 @@ Compare two versions using the scheme comparator class (see L<URI::VersionRange:
 
 =item $int = generic_version_compare($a, $b)
 
+Generic comparison (split on numeric and alphabetic segments).
+
 =item $int = semver_version_compare($a, $b)
+
+Semantic Versioning 2.0.0 comparison (L<https://semver.org>).
+
+=item $int = datetime_version_compare($a, $b)
+
+RFC 3339 timestamp comparison based on the UTC instant (eg. C<2024-01-01T00:00:00Z == 2023-12-31T19:00:00-05:00>).
+Fractional seconds are supported up to 9 digits. Croaks on invalid timestamp.
+
+=item $int = intdot_version_compare($a, $b)
+
+Integers separated by dots (eg. C<10.234.5.12>). Leading zeros are ignored, a missing segment is equivalent
+to a zero segment and the interpretation stops at the first character that is not a digit or a dot.
+
+=item $int = lexicographic_version_compare($a, $b)
+
+Byte-wise comparison of the UTF-8 encoded versions, without normalisation.
 
 =back
 
