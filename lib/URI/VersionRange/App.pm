@@ -87,7 +87,7 @@ VERSION
 
         my $vers_comparator_class = join '::', 'URI::VersionRange::Version', $vers->scheme;
 
-         if (URI::VersionRange::Version->load($vers->scheme) eq 'URI::VersionRange::Version') {
+        if (URI::VersionRange::Version->load($vers->scheme) eq 'URI::VersionRange::Version') {
             say STDERR 'WARNING: Loaded the fallback scheme class comparator.';
             say STDERR '         The comparison may not work correctly!';
         }
