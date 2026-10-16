@@ -13,7 +13,7 @@ use Data::Dumper ();
 
 use URI::VersionRange ();
 
-our $VERSION = '2.25_3';
+our $VERSION = '2.26';
 
 sub cli_error {
     my ($error) = @_;

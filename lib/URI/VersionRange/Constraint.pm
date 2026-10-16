@@ -12,7 +12,7 @@ use overload '""' => 'to_string', fallback => 1;
 
 use URI::VersionRange::Version;
 
-our $VERSION = '2.25_3';
+our $VERSION = '2.26';
 
 our %COMPARATOR = (
     '='  => 'equal',
@@ -185,16 +185,16 @@ Return the version string.
 
 =head3 B<to_string>
 
-    $vers->to_string
+    $constraint->to_string
 
-Stringify C<vers> components.
+Stringify C<constraint> components.
 
 The version is percent-encoded using the vers-spec canonical form (only
 C<< > >>, C<< < >>, C<=>, C<!>, C<*>, C<|>, C<%> and space characters are encoded).
 
 =head3 B<to_human_string>
 
-    $vers->to_human_string
+    $constraint->to_human_string
 
 Convert the constraint into human-readable format.
 
@@ -207,7 +207,7 @@ Convert the constraint into human-readable format.
 
 =head3 B<TO_JSON>
 
-    $vers->TO_JSON
+    $constraint->TO_JSON
 
 Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>, etc).
 
@@ -217,7 +217,7 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>
 
 =head3 B<from_string>
 
-    $vers = URI::VersionRange::Constraint->from_string($vers_string);
+    $constraint = URI::VersionRange::Constraint->from_string($constraint_string);
 
 Converts the given "constraint" string to L<URI::VersionRange::Constraint> object. Croaks on error.
 

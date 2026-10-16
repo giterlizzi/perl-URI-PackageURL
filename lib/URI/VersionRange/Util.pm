@@ -9,7 +9,7 @@ use Time::Local;
 use Exporter qw(import);
 use Carp     ();
 
-our $VERSION = '2.25_3';
+our $VERSION = '2.26';
 
 our @EXPORT = qw(
     parse_semver normalize_semver is_semver

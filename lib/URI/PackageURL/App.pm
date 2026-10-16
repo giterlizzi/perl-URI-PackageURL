@@ -16,7 +16,7 @@ use URI::PackageURL       ();
 use URI::PackageURL::Type ();
 use URI::PackageURL::Util qw(purl_types);
 
-our $VERSION = '2.25_3';
+our $VERSION = '2.26';
 
 sub cli_error {
     my ($error) = @_;

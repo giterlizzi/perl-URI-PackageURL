@@ -21,7 +21,7 @@ use overload '""' => 'to_string', fallback => 1;
 
 BEGIN { *VERS:: = *URI::VersionRange:: }
 
-our $VERSION = '2.25_3';
+our $VERSION = '2.26';
 our @EXPORT  = qw(encode_vers decode_vers is_vers);
 
 my $VERS_SCHEME_REGEXP = qr{[a-z][a-z0-9\.\-]*};
@@ -363,7 +363,7 @@ URI::VersionRange - Perl extension for VERS (Version Range Specifier)
   $vers = decode_vers('vers:cpan/>2.00|<2.25');
   say $vers->scheme;  # cpan
 
-  $vers_string = encode_vers(scheme => cpan, constraints => ['>2.00']);
+  $vers_string = encode_vers(scheme => 'cpan', constraints => ['>2.00']);
   say $vers_string; # vers:cpan/>2.00
 
   if (! is_vers('3.14')) {
@@ -466,7 +466,7 @@ C<constraints> is ARRAY of L<URI::VersionRange::Constraint> object.
 
 Check if a version is contained within a range
 
-    my $vers = URI::VersionRange::from_string('vers:cpan/>2.00|<2.25');
+    my $vers = URI::VersionRange->from_string('vers:cpan/>2.00|<2.25');
 
     if ($vers->contains('2.10')) {
         say "The version is in range";
@@ -476,7 +476,7 @@ See L<URI::VersionRange::Version>.
 
 =head3 B<constraint_contains>
 
-    $vers->constraint_contains
+    $vers->constraint_contains( $constraint, $version )
 
 Check if a version is contained within a specific constraint.
 

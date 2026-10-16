@@ -13,7 +13,7 @@ use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);
 
 use constant DEBUG => $ENV{VERS_DEBUG};
 
-our $VERSION = '2.25_3';
+our $VERSION = '2.26';
 
 sub load {
 
@@ -291,7 +291,7 @@ using L<Version::libversion::XS> module:
 
   package URI::VersionRange::Scheme::generic {
 
-      use Version::libversion::XS;
+      use Version::libversion::XS qw(version_compare2);
 
       use parent 'URI::VersionRange::Version';
       use overload ('cmp' => \&compare, '<=>' => \&compare, fallback => 1);

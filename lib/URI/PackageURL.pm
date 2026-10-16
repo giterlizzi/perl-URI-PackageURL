@@ -18,7 +18,7 @@ use constant DEBUG => $ENV{PURL_DEBUG};
 
 use overload '""' => 'to_string', fallback => 1;
 
-our $VERSION = '2.25_3';
+our $VERSION = '2.26';
 our @EXPORT  = qw(encode_purl decode_purl is_purl);
 
 my $PURL_TYPE_REGEXP = qr{[a-z][a-z0-9\.\-]*};
@@ -374,34 +374,34 @@ URI::PackageURL - Perl extension for PURL (Package URL)
   $purl = URI::PackageURL->new(
     type      => 'cpan',
     name      => 'URI-PackageURL',
-    version   => '2.25'
+    version   => '2.26'
   );
 
-  say $purl; # pkg:cpan/URI-PackageURL@2.25
+  say $purl; # pkg:cpan/URI-PackageURL@2.26
 
   # Parse a PURL string
-  $purl = URI::PackageURL->from_string('pkg:cpan/URI-PackageURL@2.25');
+  $purl = URI::PackageURL->from_string('pkg:cpan/URI-PackageURL@2.26');
 
 
   # use setter methods
 
-  my $purl = URI::PackageURL->new(type => 'cpan', name => 'URI-PackageURL');
+  $purl = URI::PackageURL->new(type => 'cpan', name => 'URI-PackageURL');
 
   say $purl; # pkg:cpan/URI-PackageURL
   say $purl->version; # undef
 
-  $purl->version('2.25');
-  say $purl; # pkg:cpan/URI-PackageURL@2.25
-  say $purl->version; # 2.25
+  $purl->version('2.26');
+  say $purl; # pkg:cpan/URI-PackageURL@2.26
+  say $purl->version; # 2.26
 
 
   # exported functions
 
-  $purl = decode_purl('pkg:cpan/URI-PackageURL@2.25');
+  $purl = decode_purl('pkg:cpan/URI-PackageURL@2.26');
   say $purl->type;  # cpan
 
-  $purl_string = encode_purl(type => cpan, name => 'URI-PackageURL', version => '2.25');
-  say $purl_string; # pkg:cpan/URI-PackageURL@2.25
+  $purl_string = encode_purl(type => 'cpan', name => 'URI-PackageURL', version => '2.26');
+  say $purl_string; # pkg:cpan/URI-PackageURL@2.26
 
   if (! is_purl('https://packageurl.org/')) {
     die "Invalid PURL string";
@@ -418,7 +418,7 @@ URI::PackageURL - Perl extension for PURL (Package URL)
   $purl = PURL->new(
     type      => 'cpan',
     name      => 'URI-PackageURL',
-    version   => '2.25'
+    version   => '2.26'
   );
 
   $purl = PURL->from_string('pkg:cpan/URI-PackageURL');
@@ -431,7 +431,7 @@ URI::PackageURL - Perl extension for PURL (Package URL)
   $cloned->version('1.00');
 
   say $cloned; # pkg:cpan/URI-PackageURL@1.00
-  say $purl;   # pkg:cpan/URI-PackageURL@2.25
+  say $purl;   # pkg:cpan/URI-PackageURL@2.26
 
 
 =head1 DESCRIPTION
@@ -570,9 +570,9 @@ This function call is functionally identical to:
 
 =head3 B<decode_purl>
 
-    $purl_components = decode_purl($purl_string)
+    $purl = decode_purl($purl_string)
 
-Converts the given PURL string to PURL components. Croaks on error.
+Converts the given PURL string to a URI::PackageURL object. Croaks on error.
 
 This function call is functionally identical to:
 
@@ -687,7 +687,7 @@ Clone PURL object.
     $cloned->version('1.00');
 
     say $cloned; # pkg:cpan/URI-PackageURL@1.00
-    say $purl;   # pkg:cpan/URI-PackageURL@2.25
+    say $purl;   # pkg:cpan/URI-PackageURL@2.26
 
 =head3 B<TO_JSON>
 
@@ -699,11 +699,12 @@ Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Cpanel::JSO
 
     # {
     #    "name" : "URI-PackageURL",
+    #    "namespace" : null,
     #    "qualifiers" : {},
     #    "scheme" : "pkg",
     #    "subpath" : null,
     #    "type" : "cpan",
-    #    "version" : "2.25"
+    #    "version" : "2.26"
     # }
 
 =head3 B<from_string>

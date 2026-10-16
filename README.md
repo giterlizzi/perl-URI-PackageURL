@@ -15,34 +15,34 @@ use URI::PackageURL;
 $purl = URI::PackageURL->new(
   type      => 'cpan',
   name      => 'URI-PackageURL',
-  version   => '2.25'
+  version   => '2.26'
 );
 
-say $purl; # pkg:cpan/URI-PackageURL@2.25
+say $purl; # pkg:cpan/URI-PackageURL@2.26
 
 # Parse a PURL string
-$purl = URI::PackageURL->from_string('pkg:cpan/URI-PackageURL@2.25');
+$purl = URI::PackageURL->from_string('pkg:cpan/URI-PackageURL@2.26');
 
 
 # use setter methods
 
-my $purl = URI::PackageURL->new(type => 'cpan', name => 'URI-PackageURL');
+$purl = URI::PackageURL->new(type => 'cpan', name => 'URI-PackageURL');
 
 say $purl; # pkg:cpan/URI-PackageURL
 say $purl->version; # undef
 
-$purl->version('2.25');
-say $purl; # pkg:cpan/URI-PackageURL@2.25
-say $purl->version; # 2.25
+$purl->version('2.26');
+say $purl; # pkg:cpan/URI-PackageURL@2.26
+say $purl->version; # 2.26
 
 
 # exported functions
 
-$purl = decode_purl('pkg:cpan/URI-PackageURL@2.25');
+$purl = decode_purl('pkg:cpan/URI-PackageURL@2.26');
 say $purl->type;  # cpan
 
-$purl_string = encode_purl(type => cpan, name => 'URI-PackageURL', version => '2.25');
-say $purl_string; # pkg:cpan/URI-PackageURL@2.25
+$purl_string = encode_purl(type => 'cpan', name => 'URI-PackageURL', version => '2.26');
+say $purl_string; # pkg:cpan/URI-PackageURL@2.26
 
 if (! is_purl('https://packageurl.org/')) {
   die "Invalid PURL string";
@@ -60,10 +60,10 @@ URI::PackageURL->new(type => 'cpan', name => 'URI::PackageURL');
 $purl = PURL->new(
   type    => 'cpan',
   name    => 'URI-PackageURL',
-  version => '2.25'
+  version => '2.26'
 );
 
-$purl = PURL->from_string('pkg:cpan/URI-PackageURL');
+$purl = PURL->from_string('pkg:cpan/URI-PackageURL@2.26');
 
 
 # clone
@@ -73,7 +73,7 @@ $cloned = $purl->clone;
 $cloned->version('1.00');
 
 say $cloned; # pkg:cpan/URI-PackageURL@1.00
-say $purl;   # pkg:cpan/URI-PackageURL@2.25
+say $purl;   # pkg:cpan/URI-PackageURL@2.26
 ```
 
 
@@ -96,15 +96,15 @@ if ($vers->contains('2.10')) {
 }
 
 # Parse "vers" string
-$vers = URI::VersionRange->from_string('vers:cpan/>2.00|<2.25');
+$vers = URI::VersionRange->from_string('vers:cpan/>2.00|<2.26');
 
 
 # exported functions
 
-$vers = decode_vers('vers:cpan/>2.00|<2.25');
+$vers = decode_vers('vers:cpan/>2.00|<2.26');
 say $vers->scheme;  # cpan
 
-$vers_string = encode_vers(scheme => cpan, constraints => ['>2.00']);
+$vers_string = encode_vers(scheme => 'cpan', constraints => ['>2.00']);
 say $vers_string; # vers:cpan/>2.00
 
 if (! is_vers('3.14')) {
@@ -119,7 +119,7 @@ $vers = VERS->new(
   constraints => ['>2.00']
 );
 
-$vers = VERS->from_string('vers:cpan/>2.00|<2.25');
+$vers = VERS->from_string('vers:cpan/>2.00|<2.26');
 ```
 
 
@@ -130,14 +130,15 @@ $vers = VERS->from_string('vers:cpan/>2.00|<2.25');
 Inspect and export "purl" string in various formats (JSON, YAML, Data::Dumper, ENV):
 
 ```console
-$ purl-tool pkg:cpan/URI-PackageURL@2.25 --json | jq
+$ purl-tool pkg:cpan/URI-PackageURL@2.26 --json | jq
 {
   "name": "URI-PackageURL",
   "namespace": null,
   "qualifiers": {},
+  "scheme": "pkg",
   "subpath": null,
   "type": "cpan",
-  "version": "2.25"
+  "version": "2.26"
 }
 ```
 
@@ -145,7 +146,7 @@ $ purl-tool pkg:cpan/URI-PackageURL@2.25 --json | jq
 Download package using "purl" string:
 
 ```console
-$ wget $(purl-tool pkg:cpan/URI-PackageURL@2.25?author=GDT --download-url)
+$ wget $(purl-tool pkg:cpan/URI-PackageURL@2.26?author=GDT --download-url)
 ```
 
 
@@ -156,7 +157,7 @@ Use "purl" string in your shell-scripts:
 
 set -e 
 
-PURL="pkg:cpan/URI-PackageURL@2.25?author=GDT"
+PURL="pkg:cpan/URI-PackageURL@2.26?author=GDT"
 
 eval $(purl-tool "$PURL" --env)
 
@@ -177,14 +178,14 @@ Create on-the-fly a "purl" string:
 ```console
 $ purl-tool --type cpan \
             --name URI-PackageURL \
-            --version 2.25
+            --version 2.26
 ```
 
 
 Validate a PURL string:
 
 ```bash
-if $(purl-tool $PURL_STRING --validate -q); then
+if purl-tool "$PURL_STRING" --validate -q; then
     echo "PURL string is valid"
 else
     echo "PURL string is not valid"
