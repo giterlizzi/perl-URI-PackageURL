@@ -38,6 +38,16 @@ foreach my $type (@PURL_TYPES) {
 
     };
 
+    subtest "$type - scheme" => sub {
+
+        eval { $t->validate(type => $type) };
+        unlike $@, qr/is not a valid scheme/, 'default "pkg" scheme';
+
+        eval { $t->validate(scheme => 'foo', type => $type) };
+        like $@, qr/'foo' is not a valid scheme/, 'invalid scheme';
+
+    };
+
     if ($ENV{PURL_EXAMPLES_TESTING}) {
 
         my $examples = $t->examples;

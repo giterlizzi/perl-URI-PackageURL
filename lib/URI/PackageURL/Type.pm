@@ -13,7 +13,7 @@ use List::Util qw(first);
 
 use constant DEBUG => $ENV{PURL_DEBUG};
 
-our $VERSION = '2.25_3';
+our $VERSION = '2.26';
 my %DEFINITION_CACHE = ();
 
 my %ALGO_LENGTH = ('md5' => 32, 'sha1' => 40, 'sha256' => 64, 'sha384' => 96, 'sha512' => 128);
@@ -254,10 +254,10 @@ sub validate {
     my $self = shift;
 
     my %components = (
+        scheme     => 'pkg',
         type       => undef,
         namespace  => undef,
         name       => undef,
-        version    => undef,
         version    => undef,
         qualifiers => {},
         subpath    => undef,
