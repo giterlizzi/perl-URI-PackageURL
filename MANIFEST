@@ -148,10 +148,8 @@ t/vers/openssl_range_from_native_test.json
 t/vers/openssl_version_cmp_test.json
 t/vers/pypi_range_containment_test.json
 t/vers/pypi_range_from_native_test.json
-t/vers/pypi_range_roundtrip_test.json
 t/vers/pypi_range_validate_test.json
 t/vers/test-overview.md
-t/vers/test-schema-changes.md
 t/vers/test-schema.md
 t/vers/test-suite.md
 t/vers/vers_canonical_parse_test.json
