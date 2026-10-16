@@ -95,9 +95,14 @@ sub execute_from_native_test {
     my $scheme           = $test->{input}->{scheme};
     my $expected         = $test->{expected_output};
 
-    local $TODO = "SKIP vers:conan/" if $expected eq 'vers:conan/';
+    local $TODO = "SKIP vers:conan/" if ($expected // q{}) eq 'vers:conan/';
 
     my $got = eval { URI::VersionRange->from_native(scheme => $scheme, range => $native_range) };
+
+    if ($test->{expected_failure}) {
+        ok($@, "[$scheme] $test_description ($native_range)");
+        return;
+    }
 
     local $TODO = 'Skip because VERS require a range' if $expected eq 'vers:conan/';
     local $TODO = 'Skip include_prerelease=True'      if $native_range =~ 'include_prerelease=True';
