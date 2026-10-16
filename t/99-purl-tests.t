@@ -47,9 +47,6 @@ sub execute_test {
 
     TODO: {
 
-            local $TODO = 'Maven - SKIP test because in ENCODE always generate well format PURL string'
-                if ($test->{description} eq 'invalid encoded colon : between scheme and type');
-
             local $TODO = 'Upstream inconsistency: uppercase qualifier key (see "types/gem-test.json" parse test)'
                 if ($test->{description} eq 'maven pom reference' && $test->{test_type} eq 'parse');
 
