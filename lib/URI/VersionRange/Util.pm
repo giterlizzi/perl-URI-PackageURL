@@ -5,6 +5,7 @@ use strict;
 use utf8;
 use warnings;
 
+use Time::Local;
 use Exporter qw(import);
 use Carp     ();
 
@@ -188,70 +189,149 @@ sub _semver_native_range {
     $native =~ s/^(.*)\s\-\s(.*)$/>= $1 <= $2/g;    # TODO
     $native =~ s/(>\=|<\=|>|<)\s+/$1/g;
 
-    my @p = grep {$_} split /(?:\s+|\|\|)/, $native;
     my @constraints = ();
 
-    foreach my $part (@p) {
+    # "||" separates the ranges (union) and whitespace separates the comparators (intersection)
+    foreach my $range (split /\|\|/, $native) {
 
-        $part =~ s{v(\d+)}{$1};
-        $part =~ s{^=}{};
-        $part =~ s/^\s+|\s+$//g;
+        my @parts       = grep {$_} split /\s+/, $range;
+        my @comparators = map  { split /\|/ } map { _semver_native_comparator($_) } @parts;
 
-        # Wildcards (1.x or 2.0.x)
-        if (my @wildcards = _semver_wildcards('>=', $part)) {
-            push @constraints, @wildcards;
-            next;
-        }
-
-        # Tilde operator
-        if ($part =~ /^(~)(.*)/) {
-            push @constraints, _tilde_operator('semver', $2);
-            next;
-        }
-
-        # Caret operator
-        if ($part =~ /^(\^)(.*)/) {
-            push @constraints, _caret_operator('semver', $2);
-            next;
-        }
-
-        # Operators
-        if ($part =~ /(>\=|<\=|>|<)(.*)/) {
-
-            my ($operator, $version) = ($1, $2);
-
-            # Wildcards (1.x or 2.0.x)
-            if (my @wildcards = _semver_wildcards($operator, $version)) {
-                push @constraints, @wildcards;
-                next;
-            }
-
-
-            $version = normalize_semver($version);
-
-            if ($version and is_semver($version)) {
-                push @constraints, join('', $operator, $version);
-                next;
-            }
-
-        }
-
-        if ($part ne '*') {
-
-            my $version = normalize_semver($part);
-
-            if ($version and is_semver($version)) {
-                push @constraints, normalize_semver($part);
-                next;
-            }
-
-        }
-
-        push @constraints, $part;
+        # Intersect the comparators (eg. ">=5.0.3 >=4.2.1" --> ">=5.0.3")
+        push @constraints, (@parts > 1) ? _semver_intersect(@comparators) : @comparators;
 
     }
 
     return join '|', @constraints;
+}
+
+sub _semver_native_comparator {
+
+    my $part = shift;
+
+    $part =~ s{v(\d+)}{$1};
+    $part =~ s{^=}{};
+    $part =~ s/^\s+|\s+$//g;
+
+    # Wildcards (1.x or 2.0.x)
+    if (my @wildcards = _semver_wildcards('>=', $part)) {
+        return @wildcards;
+    }
+
+    # Tilde operator
+    if ($part =~ /^(~)(.*)/) {
+        return _tilde_operator('semver', $2);
+    }
+
+    # Caret operator
+    if ($part =~ /^(\^)(.*)/) {
+        return _caret_operator('semver', $2);
+    }
+
+    # Operators
+    if ($part =~ /(>\=|<\=|>|<)(.*)/) {
+
+        my ($operator, $version) = ($1, $2);
+
+        # Wildcards (1.x or 2.0.x)
+        if (my @wildcards = _semver_wildcards($operator, $version)) {
+            return @wildcards;
+        }
+
+        $version = normalize_semver($version);
+
+        if ($version and is_semver($version)) {
+            return join('', $operator, $version);
+        }
+
+    }
+
+    if ($part ne '*') {
+
+        my $version = normalize_semver($part);
+
+        if ($version and is_semver($version)) {
+            return $version;
+        }
+
+    }
+
+    return $part;
+
+}
+
+sub _semver_intersect {
+
+    my @comparators = @_;
+
+    my ($lower, $upper, $equal);
+
+    foreach my $comparator (@comparators) {
+
+        my ($operator, $version) = $comparator =~ /^(>=|<=|>|<)?(.*)$/;
+
+        # Skip the intersection for non-SemVer versions (eg. "*")
+        return @comparators unless is_semver($version);
+
+        if (!$operator) {
+
+            if ($equal && semver_version_compare($equal, $version) != 0) {
+                Carp::croak "Invalid Version Range: '$equal' and '$version' match no version";
+            }
+
+            $equal = $version;
+            next;
+
+        }
+
+        # Keep the highest lower bound (">" wins over ">=" for the same version)
+        if ($operator =~ /^>/) {
+
+            my $cmp = $lower ? semver_version_compare($version, $lower->[1]) : 1;
+            $lower = [$operator, $version] if ($cmp > 0 || ($cmp == 0 && $operator eq '>'));
+            next;
+
+        }
+
+        # Keep the lowest upper bound ("<" wins over "<=" for the same version)
+        my $cmp = $upper ? semver_version_compare($version, $upper->[1]) : -1;
+        $upper = [$operator, $version] if ($cmp < 0 || ($cmp == 0 && $operator eq '<'));
+
+    }
+
+    my @bounds = grep {$_} $lower, $upper;
+
+    if ($lower && $upper) {
+
+        my $cmp = semver_version_compare($lower->[1], $upper->[1]);
+
+        if ($cmp > 0 || ($cmp == 0 && ($lower->[0] eq '>' || $upper->[0] eq '<'))) {
+            Carp::croak sprintf "Invalid Version Range: '%s' and '%s' match no version", map { join '', @{$_} } @bounds;
+        }
+
+    }
+
+    if ($equal) {
+
+        foreach my $bound (@bounds) {
+
+            my ($operator, $version) = @{$bound};
+            my $cmp = semver_version_compare($equal, $version);
+
+            my %match = ('>=' => $cmp >= 0, '>' => $cmp > 0, '<=' => $cmp <= 0, '<' => $cmp < 0);
+
+            unless ($match{$operator}) {
+                Carp::croak "Invalid Version Range: '$equal' and '$operator$version' match no version";
+            }
+
+        }
+
+        return ($equal);
+
+    }
+
+    return map { join '', @{$_} } @bounds;
+
 }
 
 sub _conan_native_range {
@@ -642,8 +722,6 @@ sub intdot_version_compare {
 
 
 # datetime compare
-use Time::Local;
-use Data::Dumper;
 
 sub datetime_version_compare {
 
